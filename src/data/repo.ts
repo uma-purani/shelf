@@ -2,6 +2,7 @@ import { createItem, type NewItemInput } from '../domain/items'
 import { applyTransition, latestLog, type StatusAction } from '../domain/status'
 import type { Item, LogEntry } from '../domain/types'
 import { db as defaultDb, type ShelfDB } from './db'
+import { newId as generateId } from './id'
 
 export interface Repo {
   addItem(input: NewItemInput): Promise<Item>
@@ -18,7 +19,7 @@ export interface Repo {
 export function createRepo(
   db: ShelfDB = defaultDb,
   clock: () => Date = () => new Date(),
-  newId: () => string = () => crypto.randomUUID(),
+  newId: () => string = generateId,
 ): Repo {
   return {
     async addItem(input) {

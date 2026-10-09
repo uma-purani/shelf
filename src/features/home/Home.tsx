@@ -64,15 +64,18 @@ export default function Home() {
         setNotePrompt(null)
       })
     } catch (e) {
-      if (e instanceof TransitionError) toast.show(e.message)
-      else throw e
+      toast.show(e instanceof TransitionError ? e.message : `Something went wrong: ${String(e)}`)
     }
   }
 
   async function add(title: string, type: ItemType) {
-    const item = await repo.addItem({ type, title })
-    setTab('want')
-    toast.show(`Added “${item.title}”`)
+    try {
+      const item = await repo.addItem({ type, title })
+      setTab('want')
+      toast.show(`Added “${item.title}”`)
+    } catch (e) {
+      toast.show(`Couldn't add: ${e instanceof Error ? e.message : 'unknown error'}`)
+    }
   }
 
   const loading = items === undefined || logs === undefined
