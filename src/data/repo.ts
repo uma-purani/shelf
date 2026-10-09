@@ -6,8 +6,13 @@ import { db as defaultDb, type ShelfDB } from './db'
 export interface Repo {
   addItem(input: NewItemInput): Promise<Item>
   /** Apply start/finish/drop. Returns an `undo` that restores the exact prior state. */
-  changeStatus(itemId: string, action: StatusAction): Promise<{ item: Item; undo: () => Promise<void> }>
+  changeStatus(
+    itemId: string,
+    action: StatusAction,
+  ): Promise<{ item: Item; log: LogEntry; undo: () => Promise<void> }>
   getLogs(itemId: string): Promise<LogEntry[]>
+  /** Set (or clear, when blank) the notes on a log entry. */
+  setLogNotes(logId: string, notes: string): Promise<void>
 }
 
 export function createRepo(
@@ -41,7 +46,15 @@ export function createRepo(
             else if (current) await db.logs.put(current)
           })
         }
-        return { item: result.item, undo }
+        return { item: result.item, log: result.log, undo }
+      })
+    },
+
+    async setLogNotes(logId, notes) {
+      const trimmed = notes.trim()
+      await db.logs.where('id').equals(logId).modify((log) => {
+        if (trimmed) log.notes = trimmed
+        else delete log.notes
       })
     },
 

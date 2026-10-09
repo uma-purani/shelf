@@ -58,6 +58,16 @@ describe('repo', () => {
     expect(log.finishedAt).toBeUndefined()
   })
 
+  it('sets and clears log notes', async () => {
+    const item = await repo.addItem({ type: 'book', title: 'Emma' })
+    await repo.changeStatus(item.id, { type: 'start' })
+    const { log } = await repo.changeStatus(item.id, { type: 'finish', rating: 4 })
+    await repo.setLogNotes(log.id, '  loved it ')
+    expect((await repo.getLogs(item.id))[0].notes).toBe('loved it')
+    await repo.setLogNotes(log.id, '  ')
+    expect((await repo.getLogs(item.id))[0].notes).toBeUndefined()
+  })
+
   it('keeps both log entries for a re-read', async () => {
     const item = await repo.addItem({ type: 'book', title: 'Dune' })
     await repo.changeStatus(item.id, { type: 'start' })
