@@ -1,7 +1,8 @@
 import { createItem, type NewItemInput } from '../domain/items'
 import { canBeCaughtUp, patchLog, type LogPatch } from '../domain/progress'
+import { createQuote, editQuote, type NewQuoteInput, type QuoteEdit } from '../domain/quotes'
 import { applyTransition, latestLog, type StatusAction } from '../domain/status'
-import type { Item, LogEntry } from '../domain/types'
+import type { Item, LogEntry, Quote } from '../domain/types'
 import { db as defaultDb, type ShelfDB } from './db'
 import { newId as generateId } from './id'
 
@@ -23,6 +24,12 @@ export interface Repo {
    * `undo` restores the previous version of the entry.
    */
   updateLog(logId: string, patch: LogPatch): Promise<{ log: LogEntry; undo: () => Promise<void> }>
+  /** Save a quote to an item. `undo` removes it again. */
+  addQuote(input: NewQuoteInput): Promise<{ quote: Quote; undo: () => Promise<void> }>
+  /** Edit a quote's text or location. `undo` restores the previous version. */
+  updateQuote(quoteId: string, edit: QuoteEdit): Promise<{ quote: Quote; undo: () => Promise<void> }>
+  /** Delete a quote. `undo` puts it back. */
+  deleteQuote(quoteId: string): Promise<{ undo: () => Promise<void> }>
 }
 
 export function createRepo(
@@ -104,6 +111,33 @@ export function createRepo(
         const log = patchLog(before, patch)
         await db.logs.put(log)
         return { log, undo: async () => void (await db.logs.put(before)) }
+      })
+    },
+
+    async addQuote(input) {
+      return db.transaction('rw', db.items, db.quotes, async () => {
+        if (!(await db.items.get(input.itemId))) throw new Error(`Item not found: ${input.itemId}`)
+        const quote = createQuote(input, clock(), newId())
+        await db.quotes.add(quote)
+        return { quote, undo: async () => void (await db.quotes.delete(quote.id)) }
+      })
+    },
+
+    async updateQuote(quoteId, edit) {
+      return db.transaction('rw', db.quotes, async () => {
+        const before = await db.quotes.get(quoteId)
+        if (!before) throw new Error(`Quote not found: ${quoteId}`)
+        const quote = editQuote(before, edit)
+        await db.quotes.put(quote)
+        return { quote, undo: async () => void (await db.quotes.put(before)) }
+      })
+    },
+
+    async deleteQuote(quoteId) {
+      return db.transaction('rw', db.quotes, async () => {
+        const before = await db.quotes.get(quoteId)
+        await db.quotes.delete(quoteId)
+        return { undo: async () => void (before && (await db.quotes.put(before))) }
       })
     },
 

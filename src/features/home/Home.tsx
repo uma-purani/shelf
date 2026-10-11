@@ -125,12 +125,14 @@ export default function Home() {
       <header className="flex items-baseline justify-between px-4 pb-2 pt-6">
         <h1 className="text-2xl font-semibold">Shelf</h1>
         {!loading && (
-          <Link
-            to="/stats"
-            className="-my-2 flex min-h-11 items-center rounded-xl px-2 text-xs text-muted active:bg-chip"
-          >
-            {finishedThisMonth} finished this month &rsaquo;
-          </Link>
+          <nav className="-my-2 flex items-center gap-1 text-xs text-muted">
+            <Link to="/quotes" className="flex min-h-11 items-center rounded-xl px-2 active:bg-chip">
+              Quotes
+            </Link>
+            <Link to="/stats" className="flex min-h-11 items-center rounded-xl px-2 active:bg-chip">
+              {finishedThisMonth} finished this month &rsaquo;
+            </Link>
+          </nav>
         )}
       </header>
 

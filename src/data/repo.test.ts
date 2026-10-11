@@ -120,6 +120,33 @@ describe('repo', () => {
     expect(await repo.getItem(draft.id)).toMatchObject({ title: 'dune', isDraft: true })
   })
 
+  it('adds, edits and deletes quotes, each with undo', async () => {
+    const item = await repo.addItem({ type: 'book', title: 'Dune' })
+    const added = await repo.addQuote({ itemId: item.id, text: ' Fear is the mind-killer. ', location: 'p. 8' })
+    expect(added.quote).toMatchObject({ itemId: item.id, text: 'Fear is the mind-killer.', location: 'p. 8' })
+
+    const edited = await repo.updateQuote(added.quote.id, { text: 'I must not fear.', location: '' })
+    expect(await db.quotes.get(added.quote.id)).toMatchObject({ text: 'I must not fear.' })
+    expect((await db.quotes.get(added.quote.id))?.location).toBeUndefined()
+    await edited.undo()
+    expect(await db.quotes.get(added.quote.id)).toMatchObject({ text: 'Fear is the mind-killer.', location: 'p. 8' })
+
+    const removed = await repo.deleteQuote(added.quote.id)
+    expect(await db.quotes.get(added.quote.id)).toBeUndefined()
+    await removed.undo()
+    expect(await db.quotes.get(added.quote.id)).toBeDefined()
+
+    await added.undo()
+    expect(await db.quotes.count()).toBe(0)
+  })
+
+  it('rejects empty quotes and quotes for missing items', async () => {
+    const item = await repo.addItem({ type: 'book', title: 'Dune' })
+    await expect(repo.addQuote({ itemId: item.id, text: '  ' })).rejects.toThrow()
+    await expect(repo.addQuote({ itemId: 'nope', text: 'hi' })).rejects.toThrow()
+    expect(await db.quotes.count()).toBe(0)
+  })
+
   it('keeps both log entries for a re-read', async () => {
     const item = await repo.addItem({ type: 'book', title: 'Dune' })
     await repo.changeStatus(item.id, { type: 'start' })

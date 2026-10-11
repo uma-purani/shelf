@@ -10,6 +10,7 @@ import { repo } from '../../data/repo'
 import { isCaughtUp } from '../../domain/progress'
 import type { Item, ItemType, LogEntry, Status } from '../../domain/types'
 import { useGoBack } from '../../hooks/useGoBack'
+import { ItemQuotes } from '../quotes/ItemQuotes'
 
 const TYPE_LABEL: Record<ItemType, string> = { book: 'Book', movie: 'Movie', show: 'Show' }
 const STATUS_LABEL: Record<Status, string> = {
@@ -114,6 +115,8 @@ export default function ItemDetail() {
           </ul>
         )}
       </section>
+
+      <ItemQuotes itemId={item.id} />
 
       <button
         type="button"
