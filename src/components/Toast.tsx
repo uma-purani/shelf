@@ -46,7 +46,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div
           key={toast.id}
           role="status"
-          className="fixed inset-x-0 z-50 mx-auto flex w-[calc(100%-2rem)] max-w-md items-center justify-between gap-3 rounded-xl bg-stone-900 px-4 py-3 text-sm text-stone-50 shadow-lg dark:bg-stone-100 dark:text-stone-900"
+          className="fixed inset-x-0 z-50 mx-auto flex w-[calc(100%-2rem)] max-w-md items-center justify-between gap-3 rounded-xl bg-ink px-4 py-3 text-sm text-bg shadow-lg"
           // --bar-h is published by the screen's fixed bottom bar so the toast always clears it
           style={{ bottom: 'calc(var(--bar-h, 0px) + 1rem)' }}
         >
@@ -54,7 +54,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {toast.undo && (
             <button
               type="button"
-              className="-my-2 -mr-2 shrink-0 rounded-lg px-3 py-2 font-semibold text-amber-300 active:opacity-60 dark:text-amber-700"
+              className="-my-2 -mr-2 shrink-0 rounded-lg px-3 py-2 font-semibold text-toast-accent active:opacity-60"
               onClick={async () => {
                 const undo = toast.undo
                 dismiss()

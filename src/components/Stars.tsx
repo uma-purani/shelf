@@ -5,7 +5,7 @@ const STAR_PATH = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25
 function Star({ fill, size }: { fill: StarFill; size: number }) {
   return (
     <span className="relative inline-block shrink-0" style={{ width: size, height: size }} aria-hidden>
-      <svg viewBox="0 0 24 24" width={size} height={size} className="absolute inset-0 text-stone-300 dark:text-stone-600">
+      <svg viewBox="0 0 24 24" width={size} height={size} className="absolute inset-0 text-star-empty">
         <path d={STAR_PATH} fill="currentColor" />
       </svg>
       {fill !== 'empty' && (
@@ -13,7 +13,7 @@ function Star({ fill, size }: { fill: StarFill; size: number }) {
           viewBox="0 0 24 24"
           width={size}
           height={size}
-          className="absolute inset-0 text-amber-400"
+          className="absolute inset-0 text-star"
           style={fill === 'half' ? { clipPath: 'inset(0 50% 0 0)' } : undefined}
         >
           <path d={STAR_PATH} fill="currentColor" />
@@ -33,7 +33,7 @@ export function StarDisplay({ rating, size = 14 }: { rating: number | undefined;
           <Star key={i} fill={fill} size={size} />
         ))}
       </span>
-      <span className="text-xs tabular-nums opacity-70">{formatRating(rating)}</span>
+      <span className="text-xs tabular-nums text-muted">{formatRating(rating)}</span>
     </span>
   )
 }

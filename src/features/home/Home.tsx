@@ -125,7 +125,7 @@ export default function Home() {
       <header className="flex items-baseline justify-between px-4 pb-2 pt-6">
         <h1 className="text-2xl font-semibold">Shelf</h1>
         {!loading && (
-          <p className="text-xs opacity-60">
+          <p className="text-xs text-muted">
             {finishedThisMonth} finished this month
           </p>
         )}
@@ -135,9 +135,9 @@ export default function Home() {
         <div className="px-4 pb-2">
           <Link
             to="/drafts"
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-stone-200 px-3 text-xs active:bg-stone-300 dark:bg-stone-800 dark:active:bg-stone-700"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-chip px-3 text-xs active:bg-line"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
             {draftCount} {draftCount === 1 ? 'item needs' : 'items need'} details
           </Link>
         </div>
@@ -145,11 +145,11 @@ export default function Home() {
 
       <main className="flex-1 space-y-6 px-4 pb-48">
         <section aria-labelledby="in-progress-heading">
-          <h2 id="in-progress-heading" className="mb-2 text-sm font-semibold uppercase tracking-wide opacity-60">
+          <h2 id="in-progress-heading" className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">
             In progress
           </h2>
           {inProgress.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-stone-300 p-4 text-sm opacity-60 dark:border-stone-700">
+            <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-muted">
               {caughtUp.length > 0
                 ? 'Nothing to watch right now. You are caught up on everything below.'
                 : 'Nothing in progress. Start something from your Want list.'}
@@ -164,7 +164,7 @@ export default function Home() {
 
           {caughtUp.length > 0 && (
             <div className="mt-5">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide opacity-50">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
                 Caught up &middot; waiting for more
               </h3>
               <ul className="space-y-2">
@@ -177,7 +177,7 @@ export default function Home() {
         </section>
 
         <section aria-label="Library">
-          <div role="tablist" className="mb-3 flex gap-1 rounded-xl bg-stone-200 p-1 dark:bg-stone-800">
+          <div role="tablist" className="mb-3 flex gap-1 rounded-xl bg-chip p-1">
             {TABS.map((t) => (
               <button
                 key={t.value}
@@ -186,16 +186,16 @@ export default function Home() {
                 aria-selected={tab === t.value}
                 onClick={() => setTab(t.value)}
                 className={`min-h-10 flex-1 rounded-lg text-sm ${
-                  tab === t.value ? 'bg-white font-semibold shadow-sm dark:bg-stone-950' : 'opacity-70'
+                  tab === t.value ? 'bg-card font-semibold shadow-sm' : 'text-muted'
                 }`}
               >
-                {t.label} <span className="text-xs opacity-60">{byStatus[t.value].length}</span>
+                {t.label} <span className="text-xs text-muted">{byStatus[t.value].length}</span>
               </button>
             ))}
           </div>
 
           {tabItems.length === 0 ? (
-            <p className="px-1 py-6 text-center text-sm opacity-50">Nothing here yet.</p>
+            <p className="px-1 py-6 text-center text-sm text-muted">Nothing here yet.</p>
           ) : (
             <ul className="space-y-2">
               {tabItems.map((item) => (
@@ -208,7 +208,7 @@ export default function Home() {
 
       <div
         ref={barRef}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-stone-50/95 px-4 pt-3 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 px-4 pt-3 backdrop-blur"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}
       >
         <div className="mx-auto max-w-md space-y-2">
@@ -223,13 +223,13 @@ export default function Home() {
           <div className="flex gap-2">
             <Link
               to="/add"
-              className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-amber-500 text-base font-semibold text-stone-950 active:opacity-70"
+              className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-accent text-base font-semibold text-on-accent active:opacity-70"
             >
               + Add
             </Link>
             <Link
               to="/capture"
-              className="flex min-h-12 items-center justify-center rounded-xl px-4 text-sm font-medium ring-1 ring-stone-300 active:bg-stone-200 dark:ring-stone-600 dark:active:bg-stone-800"
+              className="flex min-h-12 items-center justify-center rounded-xl px-4 text-sm font-medium ring-1 ring-line active:bg-line"
             >
               Quick capture
             </Link>

@@ -8,7 +8,7 @@ interface Props {
 }
 
 const base =
-  'w-full rounded-xl bg-white px-3 text-sm outline-none ring-1 ring-stone-300 focus:ring-2 focus:ring-amber-500 dark:bg-stone-900 dark:ring-stone-700'
+  'w-full rounded-xl bg-card px-3 text-sm outline-none ring-1 ring-line focus:ring-2 focus:ring-accent'
 
 /**
  * Text field that saves when it loses focus (and only if the text changed).
@@ -21,7 +21,7 @@ export function SaveOnBlurField({ label, value, onSave, placeholder, multiline, 
   }
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium uppercase tracking-wide opacity-60">{label}</span>
+      <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted">{label}</span>
       {multiline ? (
         <textarea
           key={value ?? ''}

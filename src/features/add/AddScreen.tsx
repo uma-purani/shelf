@@ -98,13 +98,13 @@ export default function AddScreen() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
-      <header className="sticky top-0 z-10 space-y-2 bg-stone-50/95 px-4 pb-3 pt-4 backdrop-blur dark:bg-stone-950/95">
+      <header className="sticky top-0 z-10 space-y-2 bg-bg/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex items-center gap-2">
           <button
             type="button"
             aria-label="Back"
             onClick={goBack}
-            className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-2xl active:bg-stone-200 dark:active:bg-stone-800"
+            className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-2xl active:bg-line"
           >
             ←
           </button>
@@ -116,19 +116,19 @@ export default function AddScreen() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search books, movies, shows"
             aria-label="Search"
-            className="min-h-11 min-w-0 flex-1 rounded-xl bg-white px-3 text-base ring-1 ring-stone-300 outline-none focus:ring-2 focus:ring-amber-500 dark:bg-stone-900 dark:ring-stone-700"
+            className="min-h-11 min-w-0 flex-1 rounded-xl bg-card px-3 text-base ring-1 ring-line outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
         {matching && (
           <div className="flex items-center justify-between gap-2 pl-1">
-            <p className="min-w-0 truncate text-sm opacity-70">
+            <p className="min-w-0 truncate text-sm text-muted">
               Matching <span className="font-medium">{draft?.title ?? '…'}</span>
             </p>
             <button
               type="button"
               disabled={!draft}
               onClick={() => resolveDraft()}
-              className="min-h-10 shrink-0 rounded-xl px-3 text-sm font-medium ring-1 ring-stone-300 active:bg-stone-200 disabled:opacity-50 dark:ring-stone-600 dark:active:bg-stone-800"
+              className="min-h-10 shrink-0 rounded-xl px-3 text-sm font-medium ring-1 ring-line active:bg-line disabled:opacity-50"
             >
               Keep as is
             </button>
@@ -138,17 +138,17 @@ export default function AddScreen() {
 
       <main className="flex-1 space-y-5 px-4 pb-24">
         {state.status === 'idle' && (
-          <p className="pt-6 text-center text-sm opacity-50">Type at least {MIN_CHARS} letters to search.</p>
+          <p className="pt-6 text-center text-sm text-muted">Type at least {MIN_CHARS} letters to search.</p>
         )}
         {state.status === 'offline' && (
-          <p className="pt-6 text-center text-sm opacity-60">Search needs a connection. Try again when you're back online.</p>
+          <p className="pt-6 text-center text-sm text-muted">Search needs a connection. Try again when you're back online.</p>
         )}
-        {state.status === 'loading' && <p className="pt-6 text-center text-sm opacity-50">Searching…</p>}
+        {state.status === 'loading' && <p className="pt-6 text-center text-sm text-muted">Searching…</p>}
 
         {outcome && (
           <>
             {outcome.failed.length > 0 && (
-              <p className="rounded-xl bg-amber-100 p-3 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200" role="alert">
+              <p className="rounded-xl bg-warn-soft p-3 text-xs text-warn-ink" role="alert">
                 {outcome.failed.length === 2
                   ? "Couldn't reach the search services."
                   : outcome.failed[0] === 'books'
@@ -157,7 +157,7 @@ export default function AddScreen() {
               </p>
             )}
             {noResults && outcome.failed.length === 0 && (
-              <p className="pt-6 text-center text-sm opacity-50">No matches for “{debounced}”.</p>
+              <p className="pt-6 text-center text-sm text-muted">No matches for “{debounced}”.</p>
             )}
             <ResultGroup title="Books" results={outcome.books} onShelf={onShelf} onPick={pick} actionLabel={actionLabel} />
             <ResultGroup title="Movies & shows" results={outcome.screen} onShelf={onShelf} onPick={pick} actionLabel={actionLabel} />
@@ -184,7 +184,7 @@ function ResultGroup({
   if (results.length === 0) return null
   return (
     <section aria-label={title}>
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide opacity-60">{title}</h2>
+      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">{title}</h2>
       <ul className="space-y-2">
         {results.map((r) => {
           const existing = onShelf.get(r.externalId)
@@ -195,15 +195,15 @@ function ResultGroup({
                 type="button"
                 disabled={existing !== undefined}
                 onClick={() => onPick(r)}
-                className="flex min-h-[4.5rem] w-full items-center gap-3 rounded-2xl bg-white p-2 text-left shadow-sm ring-1 ring-stone-200 active:bg-stone-100 disabled:opacity-60 dark:bg-stone-900 dark:ring-stone-800 dark:active:bg-stone-800"
+                className="flex min-h-[4.5rem] w-full items-center gap-3 rounded-2xl bg-card p-2 text-left shadow-sm ring-1 ring-line active:bg-chip disabled:opacity-60"
               >
                 <Cover title={r.title} url={r.coverUrl} className="h-16 w-11 shrink-0" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">{r.title}</span>
-                  <span className="block truncate text-xs opacity-60">{meta}</span>
+                  <span className="block truncate text-xs text-muted">{meta}</span>
                 </span>
                 <span className="shrink-0 pr-1 text-xs font-medium">
-                  {existing ? <span className="opacity-60">✓ {STATUS_LABEL[existing]}</span> : <span className="text-amber-600 dark:text-amber-400">{actionLabel}</span>}
+                  {existing ? <span className="text-muted">✓ {STATUS_LABEL[existing]}</span> : <span className="text-accent">{actionLabel}</span>}
                 </span>
               </button>
             </li>

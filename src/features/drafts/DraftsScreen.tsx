@@ -36,7 +36,7 @@ export default function DraftsScreen() {
           type="button"
           aria-label="Back"
           onClick={goBack}
-          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-2xl active:bg-stone-200 dark:active:bg-stone-800"
+          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-2xl active:bg-line"
         >
           ←
         </button>
@@ -44,20 +44,20 @@ export default function DraftsScreen() {
       </header>
 
       {drafts && drafts.length === 0 && (
-        <p className="pt-10 text-center text-sm opacity-50">Nothing needs details. You&rsquo;re all caught up.</p>
+        <p className="pt-10 text-center text-sm text-muted">Nothing needs details. You&rsquo;re all caught up.</p>
       )}
 
       <ul className="space-y-2 pb-10">
         {drafts?.map((item) => (
           <li
             key={item.id}
-            className="flex items-center gap-2 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800"
+            className="flex items-center gap-2 rounded-2xl bg-card p-2 shadow-sm ring-1 ring-line"
           >
-            <Link to={`/match/${item.id}`} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-xl active:bg-stone-100 dark:active:bg-stone-800">
+            <Link to={`/match/${item.id}`} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-xl active:bg-chip">
               <Cover title={item.title} url={item.coverUrl} className="h-14 w-10 shrink-0" />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">{item.title}</span>
-                <span className="block truncate text-xs opacity-60">
+                <span className="block truncate text-xs text-muted">
                   {TYPE_LABEL[item.type]} · Tap to find details
                 </span>
               </span>
@@ -65,7 +65,7 @@ export default function DraftsScreen() {
             <button
               type="button"
               onClick={() => keep(item)}
-              className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-medium ring-1 ring-stone-300 active:bg-stone-100 dark:ring-stone-600 dark:active:bg-stone-800"
+              className="min-h-11 shrink-0 rounded-xl px-3 text-sm font-medium ring-1 ring-line active:bg-chip"
             >
               Keep
             </button>

@@ -14,7 +14,7 @@ export function NotePrompt({ title, onSave, onDismiss }: NotePromptProps) {
     onDismiss()
   }
   return (
-    <div className="mx-auto flex w-full max-w-md items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-md ring-1 ring-stone-200 dark:bg-stone-800 dark:ring-stone-700">
+    <div className="mx-auto flex w-full max-w-md items-center gap-2 rounded-xl bg-card px-3 py-2 shadow-md ring-1 ring-line">
       <input
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -22,12 +22,12 @@ export function NotePrompt({ title, onSave, onDismiss }: NotePromptProps) {
         onBlur={commit}
         placeholder={`Note on ${title} (optional)`}
         aria-label={`Note on ${title}`}
-        className="min-h-9 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:opacity-50"
+        className="min-h-9 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
       />
       <button
         type="button"
         aria-label="Skip note"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg opacity-60 active:bg-stone-100 dark:active:bg-stone-700"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg text-muted active:bg-chip"
         onPointerDown={(e) => e.preventDefault()}
         onClick={onDismiss}
       >

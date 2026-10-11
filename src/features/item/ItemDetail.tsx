@@ -53,8 +53,8 @@ export default function ItemDetail() {
   if (!item) {
     return (
       <Shell onBack={goBack} title="Not found">
-        <p className="pt-10 text-center text-sm opacity-60">This item no longer exists.</p>
-        <Link to="/" replace className="mt-4 block text-center text-sm font-medium text-amber-600 dark:text-amber-400">
+        <p className="pt-10 text-center text-sm text-muted">This item no longer exists.</p>
+        <Link to="/" replace className="mt-4 block text-center text-sm font-medium text-accent">
           Back to Shelf
         </Link>
       </Shell>
@@ -69,15 +69,15 @@ export default function ItemDetail() {
       <div className="flex gap-4">
         <Cover title={item.title} url={item.coverUrl} className="h-40 w-28 shrink-0" />
         <div className="min-w-0 space-y-1 pt-1">
-          <p className="text-xs opacity-60">{meta}</p>
+          <p className="text-xs text-muted">{meta}</p>
           <p className="text-sm">
             {STATUS_LABEL[item.status]}
-            {isCaughtUp(item, latest) && <span className="opacity-60"> · caught up</span>}
+            {isCaughtUp(item, latest) && <span className="text-muted"> · caught up</span>}
           </p>
           {item.isDraft && (
             <Link
               to={`/match/${item.id}`}
-              className="mt-2 inline-flex min-h-10 items-center rounded-xl bg-amber-500 px-3 text-sm font-semibold text-stone-950 active:opacity-70"
+              className="mt-2 inline-flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-semibold text-on-accent active:opacity-70"
             >
               Find details
             </Link>
@@ -101,9 +101,9 @@ export default function ItemDetail() {
       </section>
 
       <section className="mt-8" aria-label="Log history">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide opacity-60">Log</h2>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Log</h2>
         {logs.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-stone-300 p-4 text-sm opacity-60 dark:border-stone-700">
+          <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-muted">
             Nothing logged yet. Start it from the home screen.
           </p>
         ) : (
@@ -118,7 +118,7 @@ export default function ItemDetail() {
       <button
         type="button"
         onClick={() => remove(item)}
-        className="mt-10 min-h-11 w-full rounded-xl text-sm font-medium text-red-600 ring-1 ring-red-300 active:bg-red-50 dark:text-red-400 dark:ring-red-900 dark:active:bg-red-950"
+        className="mt-10 min-h-11 w-full rounded-xl text-sm font-medium text-danger ring-1 ring-danger/40 active:bg-danger/10"
       >
         Delete
       </button>
@@ -143,13 +143,13 @@ function LogCard({ item, log, current, number }: { item: Item; log: LogEntry; cu
   }
 
   return (
-    <li className="space-y-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
+    <li className="space-y-3 rounded-2xl bg-card p-3 shadow-sm ring-1 ring-line">
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-sm font-medium">{current ? 'Current' : `Run ${number}`}</p>
         <StarDisplay rating={log.rating} size={16} />
       </div>
-      {dates.length > 0 && <p className="text-xs opacity-60">{dates.join(' · ')}</p>}
-      {log.caughtUp && <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Caught up</p>}
+      {dates.length > 0 && <p className="text-xs text-muted">{dates.join(' · ')}</p>}
+      {log.caughtUp && <p className="text-xs font-medium text-accent">Caught up</p>}
 
       {item.status === 'in_progress' && current && (
         <SaveOnBlurField
@@ -160,7 +160,7 @@ function LogCard({ item, log, current, number }: { item: Item; log: LogEntry; cu
         />
       )}
       {!(item.status === 'in_progress' && current) && log.progress && (
-        <p className="text-xs opacity-60">Progress: {log.progress}</p>
+        <p className="text-xs text-muted">Progress: {log.progress}</p>
       )}
 
       <SaveOnBlurField
@@ -182,7 +182,7 @@ function Shell({ onBack, title, children }: { onBack: () => void; title: string;
           type="button"
           aria-label="Back"
           onClick={onBack}
-          className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-2xl active:bg-stone-200 dark:active:bg-stone-800"
+          className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-2xl active:bg-line"
         >
           ←
         </button>

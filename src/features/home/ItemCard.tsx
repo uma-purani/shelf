@@ -21,9 +21,9 @@ const TYPE_LABEL = { book: 'Book', movie: 'Movie', show: 'Show' } as const
 const PROGRESS_HINT: Record<ItemType, string> = { book: 'p. 142', show: 'S2E4', movie: '45 min' }
 
 const primaryBtn =
-  'min-h-11 shrink-0 rounded-xl bg-amber-500 px-4 text-sm font-semibold text-stone-950 active:opacity-70'
+  'min-h-11 shrink-0 rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent active:opacity-70'
 const menuItem =
-  'min-h-11 w-full rounded-lg px-3 text-left text-sm active:bg-stone-100 dark:active:bg-stone-700'
+  'min-h-11 w-full rounded-lg px-3 text-left text-sm active:bg-chip'
 
 export function ItemCard({
   item,
@@ -47,7 +47,7 @@ export function ItemCard({
   }
 
   return (
-    <li className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
+    <li className="rounded-2xl bg-card p-3 shadow-sm ring-1 ring-line">
       <div className="flex items-center gap-2">
         <Link to={`/item/${item.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl">
           <Cover title={item.title} url={item.coverUrl} className={prominent ? 'h-24 w-16 shrink-0' : 'h-16 w-11 shrink-0'} />
@@ -56,23 +56,23 @@ export function ItemCard({
             <p className={`truncate font-medium ${prominent ? 'text-base' : 'text-sm'}`}>
               {item.title}
               {item.isDraft && (
-                <span className="ml-2 rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wide dark:bg-stone-700">
+                <span className="ml-2 rounded bg-chip px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wide">
                   draft
                 </span>
               )}
             </p>
-            <p className="truncate text-xs opacity-60">{meta}</p>
+            <p className="truncate text-xs text-muted">{meta}</p>
             {caughtUp && (
-              <p className="mt-0.5 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+              <p className="mt-0.5 inline-block rounded bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent-soft-ink">
                 Caught up
               </p>
             )}
             {item.status === 'finished' && <StarDisplay rating={log?.rating} />}
             {item.status === 'finished' && log?.finishedAt && (
-              <p className="text-xs opacity-50">Finished {log.finishedAt}</p>
+              <p className="text-xs text-muted">Finished {log.finishedAt}</p>
             )}
             {item.status === 'dropped' && log?.droppedAt && (
-              <p className="text-xs opacity-50">Dropped {log.droppedAt}</p>
+              <p className="text-xs text-muted">Dropped {log.droppedAt}</p>
             )}
           </div>
         </Link>
@@ -96,7 +96,7 @@ export function ItemCard({
           {(item.status === 'finished' || item.status === 'dropped') && (
             <button
               type="button"
-              className="min-h-11 rounded-xl px-3 text-sm font-medium ring-1 ring-stone-300 active:bg-stone-100 dark:ring-stone-600 dark:active:bg-stone-800"
+              className="min-h-11 rounded-xl px-3 text-sm font-medium ring-1 ring-line active:bg-chip"
               onClick={onStart}
             >
               {item.status === 'finished' ? 'Again' : 'Resume'}
@@ -107,7 +107,7 @@ export function ItemCard({
             type="button"
             aria-label="More actions"
             aria-expanded={menu}
-            className="flex min-h-11 w-11 items-center justify-center rounded-xl text-xl active:bg-stone-100 dark:active:bg-stone-800"
+            className="flex min-h-11 w-11 items-center justify-center rounded-xl text-xl active:bg-chip"
             onClick={() => setMenu((v) => !v)}
           >
             ⋯
@@ -122,7 +122,7 @@ export function ItemCard({
                 className="fixed inset-0 z-10 cursor-default"
                 onClick={() => setMenu(false)}
               />
-              <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-xl bg-white p-1 shadow-lg ring-1 ring-stone-200 dark:bg-stone-800 dark:ring-stone-700">
+              <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-xl bg-card p-1 shadow-lg ring-1 ring-line">
                 {item.status === 'in_progress' && canBeCaughtUp(item) && !caughtUp && (
                   <button type="button" className={menuItem} onClick={choose(() => onCaughtUp(true))}>
                     Caught up
@@ -140,7 +140,7 @@ export function ItemCard({
                 )}
                 <button
                   type="button"
-                  className={`${menuItem} text-red-600 dark:text-red-400`}
+                  className={`${menuItem} text-danger`}
                   onClick={choose(onDelete)}
                 >
                   Delete
@@ -161,8 +161,8 @@ export function ItemCard({
       )}
 
       {item.status === 'in_progress' && rating && (
-        <div className="mt-2 border-t border-stone-200 pt-1 dark:border-stone-800">
-          <p className="px-1 pt-1 text-center text-xs opacity-60">Tap a star: left half for a half star</p>
+        <div className="mt-2 border-t border-line pt-1">
+          <p className="px-1 pt-1 text-center text-xs text-muted">Tap a star: left half for a half star</p>
           <StarRow
             onPick={(r) => {
               setRating(false)
@@ -193,10 +193,10 @@ function ProgressField({ value, hint, onSave }: { value: string | undefined; hin
           setDraft(value ?? '')
           setEditing(true)
         }}
-        className="mt-1 flex min-h-9 w-full items-center gap-2 rounded-lg px-1 text-left text-xs active:bg-stone-100 dark:active:bg-stone-800"
+        className="mt-1 flex min-h-9 w-full items-center gap-2 rounded-lg px-1 text-left text-xs active:bg-chip"
       >
-        <span className="opacity-50">Progress</span>
-        <span className={value ? 'font-medium' : 'opacity-40'}>{value ?? `Add (e.g. ${hint})`}</span>
+        <span className="text-muted">Progress</span>
+        <span className={value ? 'font-medium' : 'text-muted'}>{value ?? `Add (e.g. ${hint})`}</span>
       </button>
     )
   }
@@ -215,7 +215,7 @@ function ProgressField({ value, hint, onSave }: { value: string | undefined; hin
       }}
       placeholder={`Progress, e.g. ${hint}`}
       aria-label="Progress"
-      className="mt-1 min-h-9 w-full rounded-lg bg-stone-100 px-2 text-sm outline-none ring-1 ring-stone-300 focus:ring-2 focus:ring-amber-500 dark:bg-stone-800 dark:ring-stone-600"
+      className="mt-1 min-h-9 w-full rounded-lg bg-chip px-2 text-sm outline-none ring-1 ring-line focus:ring-2 focus:ring-accent"
     />
   )
 }

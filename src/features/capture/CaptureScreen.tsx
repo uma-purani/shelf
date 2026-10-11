@@ -61,7 +61,7 @@ export default function CaptureScreen() {
           type="button"
           aria-label="Back"
           onClick={goBack}
-          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-2xl active:bg-stone-200 dark:active:bg-stone-800"
+          className="-ml-2 flex h-11 w-11 items-center justify-center rounded-xl text-2xl active:bg-line"
         >
           ←
         </button>
@@ -84,7 +84,7 @@ export default function CaptureScreen() {
           aria-label="Title"
           enterKeyHint="done"
           autoComplete="off"
-          className="min-h-14 w-full rounded-xl bg-white px-4 text-lg ring-1 ring-stone-300 outline-none focus:ring-2 focus:ring-amber-500 dark:bg-stone-900 dark:ring-stone-700"
+          className="min-h-14 w-full rounded-xl bg-card px-4 text-lg ring-1 ring-line outline-none focus:ring-2 focus:ring-accent"
         />
 
         <div className="flex gap-2" role="radiogroup" aria-label="Type">
@@ -97,8 +97,8 @@ export default function CaptureScreen() {
               onClick={() => choose(t.value)}
               className={`min-h-12 flex-1 rounded-full text-base ${
                 type === t.value
-                  ? 'bg-stone-900 font-semibold text-white dark:bg-stone-100 dark:text-stone-900'
-                  : 'bg-stone-200 dark:bg-stone-800'
+                  ? 'bg-ink font-semibold text-bg'
+                  : 'bg-chip'
               }`}
             >
               {t.label}
@@ -109,13 +109,13 @@ export default function CaptureScreen() {
         <button
           type="submit"
           disabled={!title.trim()}
-          className="min-h-14 w-full rounded-xl bg-amber-500 text-lg font-semibold text-stone-950 active:opacity-70 disabled:opacity-40"
+          className="min-h-14 w-full rounded-xl bg-accent text-lg font-semibold text-on-accent active:opacity-70 disabled:opacity-40"
         >
           Save
         </button>
       </form>
 
-      <p className="mt-4 text-center text-xs opacity-50">
+      <p className="mt-4 text-center text-xs text-muted">
         Saved as a draft in your Want list. Add details later from “Needs details”.
       </p>
     </div>

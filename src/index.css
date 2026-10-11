@@ -1,14 +1,79 @@
 @import "tailwindcss";
 
-body {
-  margin: 0;
-  background: #fafaf9;
-  color: #1c1917;
+/*
+ * Color tokens: the whole palette lives here. Components use semantic names
+ * (bg-card, text-muted, bg-accent...) and never raw colors, so light and dark
+ * mode are defined once. Theme: "bookish green".
+ */
+:root {
+  color-scheme: light dark;
+
+  --bg: #f7f5ef; /* page paper */
+  --card: #ffffff; /* raised surfaces */
+  --ink: #1f2a24; /* primary text */
+  --muted: #5b6760; /* secondary text */
+  --line: #ddd9cc; /* borders and rings */
+  --chip: #ece9df; /* quiet fills: tab track, tags, pressed rows */
+
+  --accent: #2f6b4f; /* primary buttons, links, focus */
+  --on-accent: #ffffff; /* text on accent */
+  --accent-soft: #dcebe2; /* tinted badges */
+  --accent-soft-ink: #1f4a36; /* text on accent-soft */
+  --toast-accent: #9fd3b6; /* Undo link on the dark toast */
+
+  --warn-soft: #f3e7c9;
+  --warn-ink: #5c4a12;
+  --danger: #b3261e;
+
+  --star: #d9a441;
+  --star-empty: #d3cfc2;
 }
 
 @media (prefers-color-scheme: dark) {
-  body {
-    background: #1c1917;
-    color: #fafaf9;
+  :root {
+    --bg: #101714;
+    --card: #18221d;
+    --ink: #e8efe9;
+    --muted: #9dada3;
+    --line: #2a3730;
+    --chip: #202c26;
+
+    --accent: #7fb89a;
+    --on-accent: #0e1a14;
+    --accent-soft: #1f3329;
+    --accent-soft-ink: #a9d4bc;
+    --toast-accent: #2f6b4f;
+
+    --warn-soft: #3a2f12;
+    --warn-ink: #e8d49a;
+    --danger: #f2877f;
+
+    --star: #e3b55a;
+    --star-empty: #34413a;
   }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-chip: var(--chip);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-ink: var(--accent-soft-ink);
+  --color-toast-accent: var(--toast-accent);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
+  --color-danger: var(--danger);
+  --color-star: var(--star);
+  --color-star-empty: var(--star-empty);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
 }
