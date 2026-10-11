@@ -8,6 +8,7 @@ import { countFinishedInMonth } from '../../domain/stats'
 import { latestLog, TransitionError, type StatusAction } from '../../domain/status'
 import type { Item, LogEntry, Status } from '../../domain/types'
 import { Link } from 'react-router-dom'
+import { BackupBanner } from '../backup/BackupBanner'
 import { NotePrompt } from './NotePrompt'
 import { ItemCard } from './ItemCard'
 
@@ -122,28 +123,35 @@ export default function Home() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
-      <header className="flex items-baseline justify-between px-4 pb-2 pt-6">
+      <header className="flex items-center justify-between px-4 pb-1 pt-5">
         <h1 className="text-2xl font-semibold">Shelf</h1>
-        {!loading && (
-          <nav className="-my-2 flex items-center gap-1 text-xs text-muted">
-            <Link to="/quotes" className="flex min-h-11 items-center rounded-xl px-2 active:bg-chip">
-              Quotes
-            </Link>
-            <Link to="/stats" className="flex min-h-11 items-center rounded-xl px-2 active:bg-chip">
-              {finishedThisMonth} finished this month &rsaquo;
-            </Link>
-          </nav>
-        )}
+        <nav className="-mr-2 flex items-center text-sm text-muted">
+          <Link to="/quotes" className="flex min-h-11 items-center rounded-xl px-3 active:bg-chip">
+            Quotes
+          </Link>
+          <Link to="/backup" className="flex min-h-11 items-center rounded-xl px-3 active:bg-chip">
+            Backup
+          </Link>
+        </nav>
       </header>
 
-      {draftCount > 0 && (
-        <div className="px-4 pb-2">
-          <Link
-            to="/drafts"
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-chip px-3 text-xs active:bg-line"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-            {draftCount} {draftCount === 1 ? 'item needs' : 'items need'} details
+      <BackupBanner />
+
+      {!loading && (
+        <div className="flex items-center justify-between gap-2 px-4 pb-2">
+          {draftCount > 0 ? (
+            <Link
+              to="/drafts"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-chip px-3 text-xs active:bg-line"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
+              {draftCount} {draftCount === 1 ? 'item needs' : 'items need'} details
+            </Link>
+          ) : (
+            <span />
+          )}
+          <Link to="/stats" className="-mr-2 flex min-h-11 items-center rounded-xl px-2 text-xs text-muted active:bg-chip">
+            {finishedThisMonth} finished this month &rsaquo;
           </Link>
         </div>
       )}

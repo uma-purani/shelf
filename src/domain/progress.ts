@@ -19,9 +19,10 @@ export function isCaughtUp(item: Item, log: LogEntry | undefined): boolean {
 /**
  * Apply an edit to a log entry. Text is trimmed and a blank value clears the field;
  * `caughtUp: false` clears the flag rather than storing false. Fields not in the patch are untouched.
+ * Always stamps `updatedAt`.
  */
-export function patchLog(log: LogEntry, patch: LogPatch): LogEntry {
-  const next: LogEntry = { ...log }
+export function patchLog(log: LogEntry, patch: LogPatch, now: Date): LogEntry {
+  const next: LogEntry = { ...log, updatedAt: now.toISOString() }
   if (patch.progress !== undefined) {
     const v = patch.progress.trim()
     if (v) next.progress = v

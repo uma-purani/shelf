@@ -12,12 +12,14 @@ export function createQuote(input: NewQuoteInput, now: Date, id: string): Quote 
   const text = input.text.trim()
   if (!text) throw new Error('Quote text is required')
   const location = input.location?.trim()
+  const iso = now.toISOString()
   return {
     id,
     itemId: input.itemId,
     text,
     ...(location ? { location } : {}),
-    createdAt: now.toISOString(),
+    createdAt: iso,
+    updatedAt: iso,
   }
 }
 
@@ -27,9 +29,9 @@ export interface QuoteEdit {
   location?: string
 }
 
-/** Apply an edit to a quote. The text can't be blanked; a blank location clears the field. */
-export function editQuote(quote: Quote, edit: QuoteEdit): Quote {
-  const next: Quote = { ...quote }
+/** Apply an edit to a quote. The text can't be blanked; a blank location clears the field. Stamps `updatedAt`. */
+export function editQuote(quote: Quote, edit: QuoteEdit, now: Date): Quote {
+  const next: Quote = { ...quote, updatedAt: now.toISOString() }
   if (edit.text !== undefined) {
     const text = edit.text.trim()
     if (!text) throw new Error('Quote text is required')

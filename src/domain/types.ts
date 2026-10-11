@@ -36,6 +36,8 @@ export interface LogEntry {
   caughtUp?: boolean
   notes?: string
   createdAt: DateTimeString
+  /** Last edit. Absent on records written before this field existed: use createdAt then. */
+  updatedAt?: DateTimeString
 }
 
 export interface Quote {
@@ -44,6 +46,8 @@ export interface Quote {
   text: string
   location?: string
   createdAt: DateTimeString
+  /** Last edit. Absent on older records: use createdAt then. */
+  updatedAt?: DateTimeString
 }
 
 export interface PendingLookup {

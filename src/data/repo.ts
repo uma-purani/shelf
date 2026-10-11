@@ -108,7 +108,7 @@ export function createRepo(
             throw new Error('Only a show that is in progress can be marked caught up')
           }
         }
-        const log = patchLog(before, patch)
+        const log = patchLog(before, patch, clock())
         await db.logs.put(log)
         return { log, undo: async () => void (await db.logs.put(before)) }
       })
@@ -127,7 +127,7 @@ export function createRepo(
       return db.transaction('rw', db.quotes, async () => {
         const before = await db.quotes.get(quoteId)
         if (!before) throw new Error(`Quote not found: ${quoteId}`)
-        const quote = editQuote(before, edit)
+        const quote = editQuote(before, edit, clock())
         await db.quotes.put(quote)
         return { quote, undo: async () => void (await db.quotes.put(before)) }
       })

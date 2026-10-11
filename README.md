@@ -29,6 +29,15 @@ The proxy only forwards TMDB search and detail requests, with a fixed set of par
 
 Vercel deployment and "install to home screen" steps are added in later increments.
 
+## Backup and restore
+
+All data lives in the browser on your phone, so back it up. Open **Backup** from the home screen:
+
+- **Export backup** downloads one JSON file (`shelf-backup-YYYY-MM-DD.json`) with every item, log entry, rating, note and quote. On Android it lands in Downloads; copy it somewhere safe (Drive, email to yourself...).
+- **Choose backup file** merges a backup into the current library. Records are matched by ID and the more recently edited version wins; records that exist only on one side are kept. **Importing never deletes anything**, so something you deleted after making the backup comes back if the file still has it. A file is fully validated first, so a bad or newer-version file changes nothing. An Undo toast reverses an import.
+- To restore onto a **fresh install**, just import the file.
+- A banner on the home screen reminds you when your last export is more than 30 days old (or you have 10+ items and have never exported). Dismissing it hides it for a week.
+
 ## Testing on a phone
 
 `npm run dev -- --host` prints a LAN address you can open on a phone on the same Wi-Fi. That address is plain `http://`, so camera scanning, service workers and "install to home screen" will not work there; those need the deployed (HTTPS) site. Everything else works.

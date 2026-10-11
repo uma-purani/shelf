@@ -4,6 +4,7 @@ import { createQuote, editQuote, searchQuotes } from './quotes'
 import type { Quote } from './types'
 
 const t0 = new Date(2026, 9, 1, 12)
+const t1 = new Date(2026, 9, 5, 12)
 
 describe('createQuote', () => {
   it('requires text and trims it; location is optional', () => {
@@ -17,14 +18,18 @@ describe('createQuote', () => {
 describe('editQuote', () => {
   const base: Quote = { id: 'q', itemId: 'i', text: 'old', location: 'p. 1', createdAt: t0.toISOString() }
   it('updates text and location without mutating', () => {
-    const next = editQuote(base, { text: ' new ', location: 'ch. 2' })
+    const next = editQuote(base, { text: ' new ', location: 'ch. 2' }, t1)
     expect(next).toMatchObject({ text: 'new', location: 'ch. 2' })
     expect(base.text).toBe('old')
   })
   it('clears the location when blank but never allows blank text', () => {
-    expect('location' in editQuote(base, { location: '' })).toBe(false)
-    expect(() => editQuote(base, { text: '  ' })).toThrow()
-    expect(editQuote(base, {}).text).toBe('old')
+    expect('location' in editQuote(base, { location: '' }, t1)).toBe(false)
+    expect(() => editQuote(base, { text: '  ' }, t1)).toThrow()
+    expect(editQuote(base, {}, t1).text).toBe('old')
+  })
+  it('stamps updatedAt on create and on edit', () => {
+    expect(createQuote({ itemId: 'i', text: 'x' }, t0, 'q').updatedAt).toBe(t0.toISOString())
+    expect(editQuote(base, { text: 'new' }, t1).updatedAt).toBe(t1.toISOString())
   })
 })
 

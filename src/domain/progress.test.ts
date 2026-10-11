@@ -36,27 +36,28 @@ describe('canBeCaughtUp / isCaughtUp', () => {
 
 describe('patchLog', () => {
   it('sets and trims progress and notes', () => {
-    const next = patchLog(log(), { progress: '  S4E7 ', notes: ' funny ' })
+    const next = patchLog(log(), { progress: '  S4E7 ', notes: ' funny ' }, t1)
     expect(next).toMatchObject({ progress: 'S4E7', notes: 'funny' })
   })
   it('clears a field when blank, leaving others alone', () => {
-    const next = patchLog(log({ progress: 'S1E1', notes: 'x' }), { progress: '   ' })
+    const next = patchLog(log({ progress: 'S1E1', notes: 'x' }), { progress: '   ' }, t1)
     expect('progress' in next).toBe(false)
     expect(next.notes).toBe('x')
   })
   it('sets caughtUp true and clears it (no stored false)', () => {
-    const on = patchLog(log(), { caughtUp: true })
+    const on = patchLog(log(), { caughtUp: true }, t1)
     expect(on.caughtUp).toBe(true)
-    const off = patchLog(on, { caughtUp: false })
+    const off = patchLog(on, { caughtUp: false }, t1)
     expect('caughtUp' in off).toBe(false)
   })
-  it('does not mutate and ignores absent fields', () => {
+  it('does not mutate, ignores absent fields and stamps updatedAt', () => {
     const original = log({ progress: 'S1E1' })
-    const next = patchLog(original, {})
-    expect(next).toEqual(original)
+    const next = patchLog(original, {}, t1)
+    expect(next).toEqual({ ...original, updatedAt: t1.toISOString() })
     expect(next).not.toBe(original)
-    patchLog(original, { progress: 'S2E2' })
+    patchLog(original, { progress: 'S2E2' }, t1)
     expect(original.progress).toBe('S1E1')
+    expect(original.updatedAt).toBeUndefined()
   })
 })
 
