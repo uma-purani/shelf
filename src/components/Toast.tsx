@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+﻿import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 
 interface ToastState {
   id: number
@@ -48,7 +48,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           role="status"
           className="fixed inset-x-0 z-50 mx-auto flex w-[calc(100%-2rem)] max-w-md items-center justify-between gap-3 rounded-xl bg-stone-900 px-4 py-3 text-sm text-stone-50 shadow-lg dark:bg-stone-100 dark:text-stone-900"
           // --bar-h is published by the screen's fixed bottom bar so the toast always clears it
-          style={{ bottom: 'calc(var(--bar-h, 9rem) + 0.5rem)' }}
+          style={{ bottom: 'calc(var(--bar-h, 0px) + 1rem)' }}
         >
           <span className="min-w-0 truncate">{toast.message}</span>
           {toast.undo && (

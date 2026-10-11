@@ -68,6 +68,18 @@ describe('repo', () => {
     expect((await repo.getLogs(item.id))[0].notes).toBeUndefined()
   })
 
+  it('deletes an item together with its logs and quotes', async () => {
+    const item = await repo.addItem({ type: 'book', title: 'Emma' })
+    const other = await repo.addItem({ type: 'book', title: 'Dune' })
+    await repo.changeStatus(item.id, { type: 'start' })
+    await db.quotes.add({ id: 'q1', itemId: item.id, text: 'hi', createdAt: now.toISOString() })
+    await repo.deleteItem(item.id)
+    expect(await db.items.get(item.id)).toBeUndefined()
+    expect(await db.logs.where('itemId').equals(item.id).count()).toBe(0)
+    expect(await db.quotes.where('itemId').equals(item.id).count()).toBe(0)
+    expect(await db.items.get(other.id)).toBeDefined()
+  })
+
   it('keeps both log entries for a re-read', async () => {
     const item = await repo.addItem({ type: 'book', title: 'Dune' })
     await repo.changeStatus(item.id, { type: 'start' })

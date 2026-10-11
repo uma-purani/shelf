@@ -1,12 +1,13 @@
-import { useLiveQuery } from 'dexie-react-hooks'
+﻿import { useLiveQuery } from 'dexie-react-hooks'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
 import { repo } from '../../data/repo'
 import { countFinishedInMonth } from '../../domain/stats'
 import { latestLog, TransitionError, type StatusAction } from '../../domain/status'
-import type { Item, ItemType, LogEntry, Status } from '../../domain/types'
-import { NotePrompt, TempAddBar } from './BottomBar'
+import type { Item, LogEntry, Status } from '../../domain/types'
+import { Link } from 'react-router-dom'
+import { NotePrompt } from './NotePrompt'
 import { ItemCard } from './ItemCard'
 
 type Tab = Extract<Status, 'want' | 'finished' | 'dropped'>
@@ -31,7 +32,10 @@ export default function Home() {
     publish()
     const ro = new ResizeObserver(publish)
     ro.observe(el)
-    return () => ro.disconnect()
+    return () => {
+      ro.disconnect()
+      document.documentElement.style.removeProperty('--bar-h')
+    }
   }, [])
 
   const items = useLiveQuery(() => db.items.toArray(), [])
@@ -68,16 +72,6 @@ export default function Home() {
     }
   }
 
-  async function add(title: string, type: ItemType) {
-    try {
-      const item = await repo.addItem({ type, title })
-      setTab('want')
-      toast.show(`Added “${item.title}”`)
-    } catch (e) {
-      toast.show(`Couldn't add: ${e instanceof Error ? e.message : 'unknown error'}`)
-    }
-  }
-
   const loading = items === undefined || logs === undefined
   const inProgress = byStatus.in_progress
   const tabItems = byStatus[tab]
@@ -93,7 +87,7 @@ export default function Home() {
         )}
       </header>
 
-      <main className="flex-1 space-y-6 px-4 pb-64">
+      <main className="flex-1 space-y-6 px-4 pb-48">
         <section aria-labelledby="in-progress-heading">
           <h2 id="in-progress-heading" className="mb-2 text-sm font-semibold uppercase tracking-wide opacity-60">
             In progress
@@ -111,8 +105,8 @@ export default function Home() {
                   log={logFor(item.id)}
                   prominent
                   onStart={() => undefined}
-                  onFinish={(rating) => run(item, { type: 'finish', rating }, `Finished “${item.title}”`)}
-                  onDrop={() => run(item, { type: 'drop' }, `Dropped “${item.title}”`)}
+                  onFinish={(rating) => run(item, { type: 'finish', rating }, `Finished â€œ${item.title}â€`)}
+                  onDrop={() => run(item, { type: 'drop' }, `Dropped â€œ${item.title}â€`)}
                 />
               ))}
             </ul>
@@ -146,7 +140,7 @@ export default function Home() {
                   key={item.id}
                   item={item}
                   log={logFor(item.id)}
-                  onStart={() => run(item, { type: 'start' }, `Started “${item.title}”`)}
+                  onStart={() => run(item, { type: 'start' }, `Started â€œ${item.title}â€`)}
                   onFinish={() => undefined}
                   onDrop={() => undefined}
                 />
@@ -170,7 +164,12 @@ export default function Home() {
               onDismiss={() => setNotePrompt(null)}
             />
           )}
-          <TempAddBar onAdd={add} />
+          <Link
+            to="/add"
+            className="flex min-h-12 w-full items-center justify-center rounded-xl bg-amber-500 text-base font-semibold text-stone-950 active:opacity-70"
+          >
+            + Add
+          </Link>
         </div>
       </div>
     </div>

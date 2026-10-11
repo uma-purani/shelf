@@ -1,4 +1,4 @@
-import { createItem, type NewItemInput } from '../domain/items'
+﻿import { createItem, type NewItemInput } from '../domain/items'
 import { applyTransition, latestLog, type StatusAction } from '../domain/status'
 import type { Item, LogEntry } from '../domain/types'
 import { db as defaultDb, type ShelfDB } from './db'
@@ -12,6 +12,8 @@ export interface Repo {
     action: StatusAction,
   ): Promise<{ item: Item; log: LogEntry; undo: () => Promise<void> }>
   getLogs(itemId: string): Promise<LogEntry[]>
+  /** Remove an item and everything that belongs to it (logs, quotes). */
+  deleteItem(itemId: string): Promise<void>
   /** Set (or clear, when blank) the notes on a log entry. */
   setLogNotes(logId: string, notes: string): Promise<void>
 }
@@ -48,6 +50,14 @@ export function createRepo(
           })
         }
         return { item: result.item, log: result.log, undo }
+      })
+    },
+
+    async deleteItem(itemId) {
+      await db.transaction('rw', db.items, db.logs, db.quotes, async () => {
+        await db.logs.where('itemId').equals(itemId).delete()
+        await db.quotes.where('itemId').equals(itemId).delete()
+        await db.items.delete(itemId)
       })
     },
 
