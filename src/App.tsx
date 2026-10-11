@@ -5,6 +5,7 @@ import CaptureScreen from './features/capture/CaptureScreen'
 import DraftsScreen from './features/drafts/DraftsScreen'
 import Home from './features/home/Home'
 import ItemDetail from './features/item/ItemDetail'
+import StatsScreen from './features/stats/StatsScreen'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/item/:id" element={<ItemDetail />} />
         <Route path="/add" element={<AddScreen />} />
         <Route path="/match/:id" element={<AddScreen />} />
+        <Route path="/stats" element={<StatsScreen />} />
         <Route path="/capture" element={<CaptureScreen />} />
         <Route path="/drafts" element={<DraftsScreen />} />
         <Route path="*" element={<Home />} />
