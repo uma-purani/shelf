@@ -1,4 +1,4 @@
-﻿# Shelf
+# Shelf
 
 A private, single-user tracker for books, movies and shows. Local-first (IndexedDB), built as a mobile-first PWA. See `media-tracker-brief.md` for the full spec.
 

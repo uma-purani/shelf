@@ -1,4 +1,4 @@
-﻿import { useLiveQuery } from 'dexie-react-hooks'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
@@ -72,7 +72,18 @@ export default function Home() {
     }
   }
 
+  async function remove(item: Item) {
+    try {
+      const { undo } = await repo.deleteItem(item.id)
+      setNotePrompt((p) => (p && p.title === item.title ? null : p))
+      toast.show(`Deleted “${item.title}”`, undo)
+    } catch (e) {
+      toast.show(`Couldn't delete: ${e instanceof Error ? e.message : 'unknown error'}`)
+    }
+  }
+
   const loading = items === undefined || logs === undefined
+  const draftCount = (items ?? []).filter((i) => i.isDraft).length
   const inProgress = byStatus.in_progress
   const tabItems = byStatus[tab]
 
@@ -86,6 +97,18 @@ export default function Home() {
           </p>
         )}
       </header>
+
+      {draftCount > 0 && (
+        <div className="px-4 pb-2">
+          <Link
+            to="/drafts"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-stone-200 px-3 text-xs active:bg-stone-300 dark:bg-stone-800 dark:active:bg-stone-700"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+            {draftCount} {draftCount === 1 ? 'item needs' : 'items need'} details
+          </Link>
+        </div>
+      )}
 
       <main className="flex-1 space-y-6 px-4 pb-48">
         <section aria-labelledby="in-progress-heading">
@@ -105,8 +128,9 @@ export default function Home() {
                   log={logFor(item.id)}
                   prominent
                   onStart={() => undefined}
-                  onFinish={(rating) => run(item, { type: 'finish', rating }, `Finished â€œ${item.title}â€`)}
-                  onDrop={() => run(item, { type: 'drop' }, `Dropped â€œ${item.title}â€`)}
+                  onFinish={(rating) => run(item, { type: 'finish', rating }, `Finished “${item.title}”`)}
+                  onDrop={() => run(item, { type: 'drop' }, `Dropped “${item.title}”`)}
+                  onDelete={() => remove(item)}
                 />
               ))}
             </ul>
@@ -140,9 +164,10 @@ export default function Home() {
                   key={item.id}
                   item={item}
                   log={logFor(item.id)}
-                  onStart={() => run(item, { type: 'start' }, `Started â€œ${item.title}â€`)}
+                  onStart={() => run(item, { type: 'start' }, `Started “${item.title}”`)}
                   onFinish={() => undefined}
                   onDrop={() => undefined}
+                  onDelete={() => remove(item)}
                 />
               ))}
             </ul>
@@ -164,12 +189,20 @@ export default function Home() {
               onDismiss={() => setNotePrompt(null)}
             />
           )}
-          <Link
-            to="/add"
-            className="flex min-h-12 w-full items-center justify-center rounded-xl bg-amber-500 text-base font-semibold text-stone-950 active:opacity-70"
-          >
-            + Add
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              to="/add"
+              className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-amber-500 text-base font-semibold text-stone-950 active:opacity-70"
+            >
+              + Add
+            </Link>
+            <Link
+              to="/capture"
+              className="flex min-h-12 items-center justify-center rounded-xl px-4 text-sm font-medium ring-1 ring-stone-300 active:bg-stone-200 dark:ring-stone-600 dark:active:bg-stone-800"
+            >
+              Quick capture
+            </Link>
+          </div>
         </div>
       </div>
     </div>

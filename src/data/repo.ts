@@ -1,4 +1,4 @@
-﻿import { createItem, type NewItemInput } from '../domain/items'
+import { createItem, type NewItemInput } from '../domain/items'
 import { applyTransition, latestLog, type StatusAction } from '../domain/status'
 import type { Item, LogEntry } from '../domain/types'
 import { db as defaultDb, type ShelfDB } from './db'
@@ -12,8 +12,11 @@ export interface Repo {
     action: StatusAction,
   ): Promise<{ item: Item; log: LogEntry; undo: () => Promise<void> }>
   getLogs(itemId: string): Promise<LogEntry[]>
-  /** Remove an item and everything that belongs to it (logs, quotes). */
-  deleteItem(itemId: string): Promise<void>
+  /** Remove an item and everything that belongs to it (logs, quotes). undo restores all of it. */
+  deleteItem(itemId: string): Promise<{ undo: () => Promise<void> }>
+  /** Overwrite an item (e.g. matching a draft). undo restores the previous version. */
+  replaceItem(next: Item): Promise<{ undo: () => Promise<void> }>
+  getItem(itemId: string): Promise<Item | undefined>
   /** Set (or clear, when blank) the notes on a log entry. */
   setLogNotes(logId: string, notes: string): Promise<void>
 }
@@ -54,12 +57,35 @@ export function createRepo(
     },
 
     async deleteItem(itemId) {
-      await db.transaction('rw', db.items, db.logs, db.quotes, async () => {
+      return db.transaction('rw', db.items, db.logs, db.quotes, async () => {
+        const [item, logs, quotes] = await Promise.all([
+          db.items.get(itemId),
+          db.logs.where('itemId').equals(itemId).toArray(),
+          db.quotes.where('itemId').equals(itemId).toArray(),
+        ])
         await db.logs.where('itemId').equals(itemId).delete()
         await db.quotes.where('itemId').equals(itemId).delete()
         await db.items.delete(itemId)
+        const undo = async () => {
+          if (!item) return
+          await db.transaction('rw', db.items, db.logs, db.quotes, async () => {
+            await db.items.put(item)
+            await db.logs.bulkPut(logs)
+            await db.quotes.bulkPut(quotes)
+          })
+        }
+        return { undo }
       })
     },
+
+    async replaceItem(next) {
+      const before = await db.items.get(next.id)
+      if (!before) throw new Error(`Item not found: ${next.id}`)
+      await db.items.put(next)
+      return { undo: async () => void (await db.items.put(before)) }
+    },
+
+    getItem: (itemId) => db.items.get(itemId),
 
     async setLogNotes(logId, notes) {
       const trimmed = notes.trim()

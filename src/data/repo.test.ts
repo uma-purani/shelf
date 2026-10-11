@@ -73,11 +73,24 @@ describe('repo', () => {
     const other = await repo.addItem({ type: 'book', title: 'Dune' })
     await repo.changeStatus(item.id, { type: 'start' })
     await db.quotes.add({ id: 'q1', itemId: item.id, text: 'hi', createdAt: now.toISOString() })
-    await repo.deleteItem(item.id)
+    const { undo } = await repo.deleteItem(item.id)
     expect(await db.items.get(item.id)).toBeUndefined()
     expect(await db.logs.where('itemId').equals(item.id).count()).toBe(0)
     expect(await db.quotes.where('itemId').equals(item.id).count()).toBe(0)
     expect(await db.items.get(other.id)).toBeDefined()
+
+    await undo()
+    expect((await db.items.get(item.id))?.status).toBe('in_progress')
+    expect(await db.logs.where('itemId').equals(item.id).count()).toBe(1)
+    expect(await db.quotes.where('itemId').equals(item.id).count()).toBe(1)
+  })
+
+  it('replaces an item and can undo it', async () => {
+    const draft = await repo.addItem({ type: 'book', title: 'dune', isDraft: true })
+    const { undo } = await repo.replaceItem({ ...draft, title: 'Dune', isDraft: false })
+    expect(await repo.getItem(draft.id)).toMatchObject({ title: 'Dune', isDraft: false })
+    await undo()
+    expect(await repo.getItem(draft.id)).toMatchObject({ title: 'dune', isDraft: true })
   })
 
   it('keeps both log entries for a re-read', async () => {

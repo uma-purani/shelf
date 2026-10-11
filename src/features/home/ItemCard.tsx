@@ -10,18 +10,25 @@ interface Props {
   onStart: () => void
   onFinish: (rating: number) => void
   onDrop: () => void
+  onDelete: () => void
 }
 
 const TYPE_LABEL = { book: 'Book', movie: 'Movie', show: 'Show' } as const
 
 const primaryBtn =
   'min-h-11 shrink-0 rounded-xl bg-amber-500 px-4 text-sm font-semibold text-stone-950 active:opacity-70'
+const menuItem =
+  'min-h-11 w-full rounded-lg px-3 text-left text-sm active:bg-stone-100 dark:active:bg-stone-700'
 
-export function ItemCard({ item, log, prominent, onStart, onFinish, onDrop }: Props) {
+export function ItemCard({ item, log, prominent, onStart, onFinish, onDrop, onDelete }: Props) {
   const [rating, setRating] = useState(false)
   const [menu, setMenu] = useState(false)
 
   const meta = [TYPE_LABEL[item.type], item.creator, item.year].filter(Boolean).join(' · ')
+  const choose = (action: () => void) => () => {
+    setMenu(false)
+    action()
+  }
 
   return (
     <li className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-stone-200 dark:bg-stone-900 dark:ring-stone-800">
@@ -54,34 +61,9 @@ export function ItemCard({ item, log, prominent, onStart, onFinish, onDrop }: Pr
             </button>
           )}
           {item.status === 'in_progress' && (
-            <>
-              <button type="button" className={primaryBtn} onClick={() => setRating((v) => !v)} aria-expanded={rating}>
-                Finished
-              </button>
-              <button
-                type="button"
-                aria-label="More actions"
-                aria-expanded={menu}
-                className="flex min-h-11 w-11 items-center justify-center rounded-xl text-xl active:bg-stone-100 dark:active:bg-stone-800"
-                onClick={() => setMenu((v) => !v)}
-              >
-                ⋯
-              </button>
-              {menu && (
-                <div className="absolute right-0 top-full z-10 mt-1 w-36 rounded-xl bg-white p-1 shadow-lg ring-1 ring-stone-200 dark:bg-stone-800 dark:ring-stone-700">
-                  <button
-                    type="button"
-                    className="min-h-11 w-full rounded-lg px-3 text-left text-sm active:bg-stone-100 dark:active:bg-stone-700"
-                    onClick={() => {
-                      setMenu(false)
-                      onDrop()
-                    }}
-                  >
-                    Drop
-                  </button>
-                </div>
-              )}
-            </>
+            <button type="button" className={primaryBtn} onClick={() => setRating((v) => !v)} aria-expanded={rating}>
+              Finished
+            </button>
           )}
           {(item.status === 'finished' || item.status === 'dropped') && (
             <button
@@ -91,6 +73,42 @@ export function ItemCard({ item, log, prominent, onStart, onFinish, onDrop }: Pr
             >
               {item.status === 'finished' ? 'Again' : 'Resume'}
             </button>
+          )}
+
+          <button
+            type="button"
+            aria-label="More actions"
+            aria-expanded={menu}
+            className="flex min-h-11 w-11 items-center justify-center rounded-xl text-xl active:bg-stone-100 dark:active:bg-stone-800"
+            onClick={() => setMenu((v) => !v)}
+          >
+            ⋯
+          </button>
+
+          {menu && (
+            <>
+              {/* tap anywhere outside to close */}
+              <button
+                type="button"
+                aria-label="Close menu"
+                className="fixed inset-0 z-10 cursor-default"
+                onClick={() => setMenu(false)}
+              />
+              <div className="absolute right-0 top-full z-20 mt-1 w-36 rounded-xl bg-white p-1 shadow-lg ring-1 ring-stone-200 dark:bg-stone-800 dark:ring-stone-700">
+                {item.status === 'in_progress' && (
+                  <button type="button" className={menuItem} onClick={choose(onDrop)}>
+                    Drop
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={`${menuItem} text-red-600 dark:text-red-400`}
+                  onClick={choose(onDelete)}
+                >
+                  Delete
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
