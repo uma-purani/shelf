@@ -73,8 +73,9 @@ export function applyTransition(
       if (!currentLog) {
         throw new TransitionError('In-progress item has no log entry')
       }
+      const { caughtUp: _caughtUp, ...open } = currentLog
       const log: LogEntry = {
-        ...currentLog,
+        ...open,
         finishedAt: today,
         rating: action.rating,
         ...(action.notes ? { notes: action.notes } : {}),
@@ -89,7 +90,8 @@ export function applyTransition(
       if (!currentLog) {
         throw new TransitionError('In-progress item has no log entry')
       }
-      const log: LogEntry = { ...currentLog, droppedAt: today }
+      const { caughtUp: _caughtUp, ...open } = currentLog
+      const log: LogEntry = { ...open, droppedAt: today }
       return { item: { ...item, status: 'dropped', updatedAt: iso }, log, logIsNew: false }
     }
   }

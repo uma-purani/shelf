@@ -25,7 +25,6 @@ export default function AddScreen() {
   const toast = useToast()
   const goBack = useGoBack()
   const [query, setQuery] = useState('')
-  const [recommendedBy, setRecommendedBy] = useState('')
   const [state, setState] = useState<SearchState>({ status: 'idle' })
   const debounced = useDebounce(query.trim(), 300)
 
@@ -46,10 +45,6 @@ export default function AddScreen() {
     for (const i of items ?? []) if (i.externalId && i.id !== draftId) map.set(i.externalId, i.status)
     return map
   }, [items, draftId])
-  const pastRecommenders = useMemo(
-    () => [...new Set((items ?? []).map((i) => i.recommendedBy).filter((r): r is string => !!r))].sort(),
-    [items],
-  )
 
   useEffect(() => {
     if (debounced.length < MIN_CHARS) {
@@ -75,7 +70,7 @@ export default function AddScreen() {
   async function add(result: SearchResult) {
     try {
       const { key: _key, ...input } = result
-      const item = await repo.addItem({ ...input, recommendedBy: recommendedBy.trim() || undefined })
+      const item = await repo.addItem(input)
       toast.show(`Added “${item.title}” to Want`, async () => void (await repo.deleteItem(item.id)))
     } catch (e) {
       toast.show(`Couldn't add: ${e instanceof Error ? e.message : 'unknown error'}`)
@@ -124,7 +119,7 @@ export default function AddScreen() {
             className="min-h-11 min-w-0 flex-1 rounded-xl bg-white px-3 text-base ring-1 ring-stone-300 outline-none focus:ring-2 focus:ring-amber-500 dark:bg-stone-900 dark:ring-stone-700"
           />
         </div>
-        {matching ? (
+        {matching && (
           <div className="flex items-center justify-between gap-2 pl-1">
             <p className="min-w-0 truncate text-sm opacity-70">
               Matching <span className="font-medium">{draft?.title ?? '…'}</span>
@@ -138,23 +133,6 @@ export default function AddScreen() {
               Keep as is
             </button>
           </div>
-        ) : (
-          <>
-            <input
-              list="recommenders"
-              value={recommendedBy}
-              onChange={(e) => setRecommendedBy(e.target.value)}
-              placeholder="Recommended by (optional)"
-              aria-label="Recommended by"
-              autoComplete="off"
-              className="min-h-10 w-full rounded-xl bg-white px-3 text-sm ring-1 ring-stone-300 outline-none focus:ring-2 focus:ring-amber-500 dark:bg-stone-900 dark:ring-stone-700"
-            />
-            <datalist id="recommenders">
-              {pastRecommenders.map((r) => (
-                <option key={r} value={r} />
-              ))}
-            </datalist>
-          </>
         )}
       </header>
 

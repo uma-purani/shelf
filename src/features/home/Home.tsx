@@ -3,6 +3,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
 import { repo } from '../../data/repo'
+import { isCaughtUp } from '../../domain/progress'
 import { countFinishedInMonth } from '../../domain/stats'
 import { latestLog, TransitionError, type StatusAction } from '../../domain/status'
 import type { Item, LogEntry, Status } from '../../domain/types'
@@ -82,9 +83,41 @@ export default function Home() {
     }
   }
 
+  async function setCaughtUp(item: Item, value: boolean) {
+    const log = logFor(item.id)
+    if (!log) return
+    try {
+      const { undo } = await repo.updateLog(log.id, { caughtUp: value })
+      toast.show(value ? `Caught up on “${item.title}”` : `Watching “${item.title}” again`, undo)
+    } catch (e) {
+      toast.show(e instanceof Error ? e.message : 'Something went wrong')
+    }
+  }
+
+  async function saveProgress(item: Item, text: string) {
+    const log = logFor(item.id)
+    if (!log) return
+    try {
+      await repo.updateLog(log.id, { progress: text })
+    } catch (e) {
+      toast.show(`Couldn't save progress: ${e instanceof Error ? e.message : 'unknown error'}`)
+    }
+  }
+
+  /** Everything an ItemCard can do, bound to one item. */
+  const handlers = (item: Item) => ({
+    onStart: () => run(item, { type: 'start' }, `Started “${item.title}”`),
+    onFinish: (rating: number) => run(item, { type: 'finish', rating }, `Finished “${item.title}”`),
+    onDrop: () => run(item, { type: 'drop' }, `Dropped “${item.title}”`),
+    onDelete: () => remove(item),
+    onCaughtUp: (value: boolean) => setCaughtUp(item, value),
+    onSaveProgress: (text: string) => saveProgress(item, text),
+  })
+
   const loading = items === undefined || logs === undefined
   const draftCount = (items ?? []).filter((i) => i.isDraft).length
-  const inProgress = byStatus.in_progress
+  const inProgress = byStatus.in_progress.filter((i) => !isCaughtUp(i, logFor(i.id)))
+  const caughtUp = byStatus.in_progress.filter((i) => isCaughtUp(i, logFor(i.id)))
   const tabItems = byStatus[tab]
 
   return (
@@ -117,23 +150,29 @@ export default function Home() {
           </h2>
           {inProgress.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-stone-300 p-4 text-sm opacity-60 dark:border-stone-700">
-              Nothing in progress. Start something from your Want list.
+              {caughtUp.length > 0
+                ? 'Nothing to watch right now. You are caught up on everything below.'
+                : 'Nothing in progress. Start something from your Want list.'}
             </p>
           ) : (
             <ul className="space-y-3">
               {inProgress.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  log={logFor(item.id)}
-                  prominent
-                  onStart={() => undefined}
-                  onFinish={(rating) => run(item, { type: 'finish', rating }, `Finished “${item.title}”`)}
-                  onDrop={() => run(item, { type: 'drop' }, `Dropped “${item.title}”`)}
-                  onDelete={() => remove(item)}
-                />
+                <ItemCard key={item.id} item={item} log={logFor(item.id)} prominent {...handlers(item)} />
               ))}
             </ul>
+          )}
+
+          {caughtUp.length > 0 && (
+            <div className="mt-5">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide opacity-50">
+                Caught up &middot; waiting for more
+              </h3>
+              <ul className="space-y-2">
+                {caughtUp.map((item) => (
+                  <ItemCard key={item.id} item={item} log={logFor(item.id)} {...handlers(item)} />
+                ))}
+              </ul>
+            </div>
           )}
         </section>
 
@@ -160,15 +199,7 @@ export default function Home() {
           ) : (
             <ul className="space-y-2">
               {tabItems.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  item={item}
-                  log={logFor(item.id)}
-                  onStart={() => run(item, { type: 'start' }, `Started “${item.title}”`)}
-                  onFinish={() => undefined}
-                  onDrop={() => undefined}
-                  onDelete={() => remove(item)}
-                />
+                <ItemCard key={item.id} item={item} log={logFor(item.id)} {...handlers(item)} />
               ))}
             </ul>
           )}
@@ -185,7 +216,7 @@ export default function Home() {
             <NotePrompt
               key={notePrompt.logId}
               title={notePrompt.title}
-              onSave={(notes) => repo.setLogNotes(notePrompt.logId, notes)}
+              onSave={(notes) => void repo.updateLog(notePrompt.logId, { notes })}
               onDismiss={() => setNotePrompt(null)}
             />
           )}

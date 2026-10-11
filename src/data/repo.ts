@@ -1,4 +1,5 @@
 import { createItem, type NewItemInput } from '../domain/items'
+import { canBeCaughtUp, patchLog, type LogPatch } from '../domain/progress'
 import { applyTransition, latestLog, type StatusAction } from '../domain/status'
 import type { Item, LogEntry } from '../domain/types'
 import { db as defaultDb, type ShelfDB } from './db'
@@ -17,8 +18,11 @@ export interface Repo {
   /** Overwrite an item (e.g. matching a draft). undo restores the previous version. */
   replaceItem(next: Item): Promise<{ undo: () => Promise<void> }>
   getItem(itemId: string): Promise<Item | undefined>
-  /** Set (or clear, when blank) the notes on a log entry. */
-  setLogNotes(logId: string, notes: string): Promise<void>
+  /**
+   * Edit a log entry's progress, notes or caught-up flag (blank text clears a field).
+   * `undo` restores the previous version of the entry.
+   */
+  updateLog(logId: string, patch: LogPatch): Promise<{ log: LogEntry; undo: () => Promise<void> }>
 }
 
 export function createRepo(
@@ -87,11 +91,19 @@ export function createRepo(
 
     getItem: (itemId) => db.items.get(itemId),
 
-    async setLogNotes(logId, notes) {
-      const trimmed = notes.trim()
-      await db.logs.where('id').equals(logId).modify((log) => {
-        if (trimmed) log.notes = trimmed
-        else delete log.notes
+    async updateLog(logId, patch) {
+      return db.transaction('rw', db.items, db.logs, async () => {
+        const before = await db.logs.get(logId)
+        if (!before) throw new Error(`Log entry not found: ${logId}`)
+        if (patch.caughtUp === true) {
+          const item = await db.items.get(before.itemId)
+          if (!item || !canBeCaughtUp(item)) {
+            throw new Error('Only a show that is in progress can be marked caught up')
+          }
+        }
+        const log = patchLog(before, patch)
+        await db.logs.put(log)
+        return { log, undo: async () => void (await db.logs.put(before)) }
       })
     },
 

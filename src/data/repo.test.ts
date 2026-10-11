@@ -62,10 +62,37 @@ describe('repo', () => {
     const item = await repo.addItem({ type: 'book', title: 'Emma' })
     await repo.changeStatus(item.id, { type: 'start' })
     const { log } = await repo.changeStatus(item.id, { type: 'finish', rating: 4 })
-    await repo.setLogNotes(log.id, '  loved it ')
+    await repo.updateLog(log.id, { notes: '  loved it ' })
     expect((await repo.getLogs(item.id))[0].notes).toBe('loved it')
-    await repo.setLogNotes(log.id, '  ')
+    await repo.updateLog(log.id, { notes: '  ' })
     expect((await repo.getLogs(item.id))[0].notes).toBeUndefined()
+  })
+
+  it('tracks progress and caught-up on an in-progress show, with undo', async () => {
+    const item = await repo.addItem({ type: 'show', title: 'Abbott Elementary' })
+    const { log } = await repo.changeStatus(item.id, { type: 'start' })
+    await repo.updateLog(log.id, { progress: 'S4E7' })
+    const { undo } = await repo.updateLog(log.id, { caughtUp: true })
+    expect((await repo.getLogs(item.id))[0]).toMatchObject({ progress: 'S4E7', caughtUp: true })
+    expect((await db.items.get(item.id))?.status).toBe('in_progress')
+
+    await undo()
+    expect((await repo.getLogs(item.id))[0].caughtUp).toBeUndefined()
+    expect((await repo.getLogs(item.id))[0].progress).toBe('S4E7')
+  })
+
+  it('refuses caught-up for books, and for shows that are not in progress', async () => {
+    const book = await repo.addItem({ type: 'book', title: 'Dune' })
+    const bookLog = (await repo.changeStatus(book.id, { type: 'start' })).log
+    await expect(repo.updateLog(bookLog.id, { caughtUp: true })).rejects.toThrow()
+
+    const show = await repo.addItem({ type: 'show', title: 'Severance' })
+    const showLog = (await repo.changeStatus(show.id, { type: 'start' })).log
+    await repo.updateLog(showLog.id, { caughtUp: true })
+    await repo.changeStatus(show.id, { type: 'finish', rating: 5 })
+    const finished = (await repo.getLogs(show.id))[0]
+    expect(finished.caughtUp).toBeUndefined()
+    await expect(repo.updateLog(finished.id, { caughtUp: true })).rejects.toThrow()
   })
 
   it('deletes an item together with its logs and quotes', async () => {

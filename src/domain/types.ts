@@ -32,6 +32,8 @@ export interface LogEntry {
   /** 0.5 to 5 in 0.5 steps. Required when the entry is finished. */
   rating?: number
   progress?: string
+  /** Shows only: up to date with what's aired, waiting for more. Still in progress, not finished. */
+  caughtUp?: boolean
   notes?: string
   createdAt: DateTimeString
 }
