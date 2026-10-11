@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mapOpenLibrary, mapTmdb } from './mappers'
+import { mapOpenLibrary, mapOpenLibraryIsbn, mapTmdb } from './mappers'
 
 describe('mapOpenLibrary', () => {
   it('maps docs to book results', () => {
@@ -29,6 +29,42 @@ describe('mapOpenLibrary', () => {
     expect(mapOpenLibrary({ docs: [{ title: 'x' }, { key: '/works/1' }] })).toEqual([])
     expect(mapOpenLibrary(null)).toEqual([])
     expect(mapOpenLibrary({})).toEqual([])
+  })
+})
+
+describe('mapOpenLibraryIsbn', () => {
+  const isbn = '9780441172719'
+  const response = {
+    [`ISBN:${isbn}`]: {
+      details: {
+        title: 'Dune',
+        authors: [{ name: 'Frank Herbert' }, { name: 'B' }, { name: 'C' }],
+        publish_date: 'August 2, 2005',
+        covers: [8231856],
+        works: [{ key: '/works/OL893415W' }],
+      },
+    },
+  }
+  it('maps an edition to a book match, using the work key as externalId', () => {
+    expect(mapOpenLibraryIsbn(response, isbn)).toEqual({
+      isbn,
+      title: 'Dune',
+      creator: 'Frank Herbert, B',
+      year: 2005,
+      coverUrl: 'https://covers.openlibrary.org/b/id/8231856-M.jpg',
+      externalId: '/works/OL893415W',
+    })
+  })
+  it('returns null for an unknown ISBN, a missing title, or bad input', () => {
+    expect(mapOpenLibraryIsbn({}, isbn)).toBeNull()
+    expect(mapOpenLibraryIsbn({ [`ISBN:${isbn}`]: { details: { title: '  ' } } }, isbn)).toBeNull()
+    expect(mapOpenLibraryIsbn({ [`ISBN:${isbn}`]: {} }, isbn)).toBeNull()
+    expect(mapOpenLibraryIsbn(null, isbn)).toBeNull()
+    expect(mapOpenLibraryIsbn(response, '9780000000002')).toBeNull() // answer is for a different ISBN
+  })
+  it('copes with missing optional fields', () => {
+    const m = mapOpenLibraryIsbn({ [`ISBN:${isbn}`]: { details: { title: 'X', publish_date: 'n.d.' } } }, isbn)
+    expect(m).toEqual({ isbn, title: 'X', creator: undefined, year: undefined, coverUrl: undefined, externalId: undefined })
   })
 })
 

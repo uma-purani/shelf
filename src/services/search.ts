@@ -1,3 +1,4 @@
+import { looksLikeIsbn } from '../domain/isbn'
 import { mapOpenLibrary, mapTmdb, type SearchResult } from './mappers'
 
 export interface SearchOutcome {
@@ -18,10 +19,13 @@ async function getJson(url: string, signal: AbortSignal): Promise<unknown> {
   return res.json()
 }
 
+/** A query that is just an ISBN (e.g. matching a scanned draft) is searched as one, not as words. */
+const bookQuery = (q: string) => (looksLikeIsbn(q) ? `isbn:${q.replace(/[\s-]/g, '')}` : q)
+
 const searchBooks = async (q: string, signal: AbortSignal) =>
   mapOpenLibrary(
     await getJson(
-      `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=${MAX_BOOKS}&fields=key,title,author_name,first_publish_year,cover_i,isbn`,
+      `https://openlibrary.org/search.json?q=${encodeURIComponent(bookQuery(q))}&limit=${MAX_BOOKS}&fields=key,title,author_name,first_publish_year,cover_i,isbn`,
       signal,
     ),
   ).slice(0, MAX_BOOKS)

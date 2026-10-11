@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 interface ToastState {
   id: number
@@ -39,8 +39,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => clearTimeout(timer.current), [])
 
+  // Stable identity, so effects that depend on the toast API don't re-run on every toast.
+  const api = useMemo(() => ({ show }), [show])
+
   return (
-    <ToastContext.Provider value={{ show }}>
+    <ToastContext.Provider value={api}>
       {children}
       {toast && (
         <div

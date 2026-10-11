@@ -49,6 +49,49 @@ export function mapOpenLibrary(json: unknown): SearchResult[] {
   return out
 }
 
+/** What an ISBN lookup found about a book. */
+export interface IsbnMatch {
+  isbn: string
+  title: string
+  creator?: string
+  year?: number
+  coverUrl?: string
+  /** The Open Library *work* key, the same id search results use, so scan and search dedupe. */
+  externalId?: string
+}
+
+interface OpenLibraryDetails {
+  details?: {
+    title?: string
+    authors?: Array<{ name?: string }>
+    publish_date?: string
+    covers?: number[]
+    works?: Array<{ key?: string }>
+  }
+}
+
+/**
+ * Maps an Open Library Books API response (`jscmd=details`) for one ISBN.
+ * Returns null when Open Library does not know the ISBN (it answers with `{}`).
+ */
+export function mapOpenLibraryIsbn(json: unknown, isbn: string): IsbnMatch | null {
+  const entry = (json as Record<string, OpenLibraryDetails> | null)?.[`ISBN:${isbn}`]
+  const d = entry?.details
+  const title = d?.title?.trim()
+  if (!d || !title) return null
+
+  const names = (d.authors ?? []).map((a) => a.name?.trim()).filter((n): n is string => !!n)
+  const year = Number.parseInt(d.publish_date?.match(/\b(1[5-9]\d{2}|20\d{2})\b/)?.[1] ?? '', 10)
+  return {
+    isbn,
+    title,
+    creator: names.slice(0, 2).join(', ') || undefined,
+    year: Number.isNaN(year) ? undefined : year,
+    coverUrl: d.covers?.[0] ? OPEN_LIBRARY_COVER(d.covers[0]) : undefined,
+    externalId: d.works?.[0]?.key,
+  }
+}
+
 /** Maps TMDB `search/multi` results, dropping people and anything without a title. */
 export function mapTmdb(json: unknown): SearchResult[] {
   const results = (json as { results?: TmdbResult[] } | null)?.results

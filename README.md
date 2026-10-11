@@ -29,6 +29,18 @@ The proxy only forwards TMDB search and detail requests, with a fixed set of par
 
 Vercel deployment and "install to home screen" steps are added in later increments.
 
+## Scanning book barcodes
+
+From **+ Add**, tap **Scan a book's barcode**. Point the rear camera at the ISBN barcode on the back of a book, or pick a photo of one from your gallery. It uses the browser's built-in `BarcodeDetector`, so there is no library or API key.
+
+- Found in Open Library: added to **Want** with an Undo toast, no confirmation step. Scanning keeps going, so you can do several books in a row.
+- Not found: saved as a **draft** carrying the ISBN, so you can match it later from "Needs details".
+- Offline: the ISBN is queued and looked up automatically when you're back online.
+- Already on your shelf: nothing is added.
+- You can also type an ISBN (10 or 13 digits, hyphens optional). The check digit must be valid, so a misread barcode is rejected.
+
+**Requirements:** Chrome on Android, over **HTTPS** (the deployed Vercel site, or `localhost`). The camera and `BarcodeDetector` are not available on a plain `http://192.168...` dev address, and desktop Chrome on Windows/Linux doesn't ship `BarcodeDetector`. When scanning isn't available the screen says why and typing an ISBN still works.
+
 ## Backup and restore
 
 All data lives in the browser on your phone, so back it up. Open **Backup** from the home screen:

@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Cover } from '../../components/Cover'
 import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
@@ -119,6 +119,14 @@ export default function AddScreen() {
             className="min-h-11 min-w-0 flex-1 rounded-xl bg-card px-3 text-base ring-1 ring-line outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
+        {!matching && (
+          <Link
+            to="/scan"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-medium text-accent ring-1 ring-line active:bg-chip"
+          >
+            Scan a book&rsquo;s barcode
+          </Link>
+        )}
         {matching && (
           <div className="flex items-center justify-between gap-2 pl-1">
             <p className="min-w-0 truncate text-sm text-muted">
