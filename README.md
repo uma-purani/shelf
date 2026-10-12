@@ -10,7 +10,8 @@ Requires Node 20+.
 npm install
 npm run dev      # http://localhost:5173
 npm test         # unit tests (vitest)
-npm run build    # typecheck + production build
+npm run build    # typecheck + production build (also generates the service worker)
+npm run preview  # serve the production build locally on :4173
 ```
 
 ## TMDB key (movies and shows)
@@ -27,7 +28,38 @@ Book search uses Open Library and needs no key. Movie and show search uses [TMDB
 
 The proxy only forwards TMDB search and detail requests, with a fixed set of parameters, so it can't be used as a general TMDB relay.
 
-Vercel deployment and "install to home screen" steps are added in later increments.
+## Deploy to Vercel
+
+Shelf builds as a static Vite site plus the one `/api/tmdb` function, so Vercel needs no config file.
+
+1. Push the repo to GitHub (you do this yourself).
+2. In Vercel: **Add New → Project**, import the repo. It detects Vite on its own (build `npm run build`, output `dist`); leave the defaults.
+3. Before the first deploy, open **Environment Variables** and add `TMDB_API_KEY` (see above), then **Deploy**.
+4. Your site is served over HTTPS, which is what the camera, the service worker and installing need.
+
+Updates: every push to `main` redeploys. An installed Shelf picks up the new version in the background and switches to it the next time you open the app.
+
+## Install Shelf on your Android home screen
+
+1. Open your Vercel URL in **Chrome** on the phone and let it load once.
+2. Chrome menu (⋮) → **Install app** (or **Add to Home screen**). Confirm.
+3. Open Shelf from the new icon: it runs full screen like a native app.
+4. **Long-press the icon** to get the shortcuts **Quick capture** and **Scan a book**.
+
+Once it has loaded once, Shelf opens **offline**: the app itself is cached by a service worker, and everything stored on the phone works without a connection (browsing, Start / Finish with ratings, notes, quotes, quick capture, stats, backup). What needs a connection: searching Open Library / TMDB, looking up a scanned ISBN (offline scans are queued and added automatically when you're back online), and loading covers you haven't seen before. Covers you have seen stay available offline (the most recent ~100).
+
+The app also asks the browser to keep its data from being cleared (`navigator.storage.persist()`). The real safety net is still **Backup** above.
+
+### Checking the offline behaviour locally
+
+The service worker only exists in the production build:
+
+```bash
+npm run build
+npm run preview      # http://localhost:4173 (also serves /api/tmdb from your .env)
+```
+
+Open it once, then stop the preview server (Ctrl+C) and reload the page: it should still open.
 
 ## Scanning book barcodes
 
@@ -52,4 +84,4 @@ All data lives in the browser on your phone, so back it up. Open **Backup** from
 
 ## Testing on a phone
 
-`npm run dev -- --host` prints a LAN address you can open on a phone on the same Wi-Fi. That address is plain `http://`, so camera scanning, service workers and "install to home screen" will not work there; those need the deployed (HTTPS) site. Everything else works.
+`npm run dev -- --host` prints a LAN address you can open on a phone on the same Wi-Fi. That address is plain `http://`, so camera scanning, the service worker and "install to home screen" will not work there; those need the deployed (HTTPS) site. Everything else works. (Dev mode never registers the service worker, so you always see your latest code.)
