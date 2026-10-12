@@ -12,11 +12,11 @@ import { BackupBanner } from '../backup/BackupBanner'
 import { NotePrompt } from './NotePrompt'
 import { ItemCard } from './ItemCard'
 
-type Tab = Extract<Status, 'want' | 'finished' | 'dropped'>
+// Dropped items live on their own screen (top-right "Dropped"), not on the main one.
+type Tab = Extract<Status, 'want' | 'finished'>
 const TABS: Array<{ value: Tab; label: string }> = [
   { value: 'want', label: 'Queue' },
   { value: 'finished', label: 'Finished' },
-  { value: 'dropped', label: 'Dropped' },
 ]
 
 const byRecent = (a: Item, b: Item) => b.updatedAt.localeCompare(a.updatedAt)
@@ -128,6 +128,9 @@ export default function Home() {
         <nav className="-mr-2 flex items-center text-sm text-muted">
           <Link to="/quotes" className="flex min-h-11 items-center rounded-xl px-3 active:bg-chip">
             Quotes
+          </Link>
+          <Link to="/dropped" className="flex min-h-11 items-center rounded-xl px-3 active:bg-chip">
+            Dropped
           </Link>
           <Link to="/backup" className="flex min-h-11 items-center rounded-xl px-3 active:bg-chip">
             Backup

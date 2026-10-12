@@ -4,6 +4,7 @@ import AddScreen from './features/add/AddScreen'
 import BackupScreen from './features/backup/BackupScreen'
 import CaptureScreen from './features/capture/CaptureScreen'
 import DraftsScreen from './features/drafts/DraftsScreen'
+import DroppedScreen from './features/dropped/DroppedScreen'
 import Home from './features/home/Home'
 import ItemDetail from './features/item/ItemDetail'
 import QuotesScreen from './features/quotes/QuotesScreen'
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/stats" element={<StatsScreen />} />
         <Route path="/capture" element={<CaptureScreen />} />
         <Route path="/drafts" element={<DraftsScreen />} />
+        <Route path="/dropped" element={<DroppedScreen />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </ToastProvider>
