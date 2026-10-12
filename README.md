@@ -95,6 +95,15 @@ All data lives in the browser on your phone, so back it up. Open **Backup** from
 - To restore onto a **fresh install**, just import the file.
 - A banner on the home screen reminds you when your last export is more than 30 days old (or you have 10+ items and have never exported). Dismissing it hides it for a week.
 
+## If your data seems to be gone: Storage check
+
+Open **Backup → Storage check** (or go to `/#/diagnostics` on your site's address). It reads the browser's storage directly and says in plain words what is there: whether the Shelf database exists at this address, how many items it holds, whether the app can open it, how much space the database vs. cached files use, and whether the browser has promised to keep the data. If the data is stored but the app can't read it, **Save a rescue copy** writes a normal backup file straight from the raw database; you can restore it with **Backup → Choose backup file**.
+
+Good to know:
+- Data is stored **per web address** (including the port). A different address, such as `http://192.168...:5173` instead of your Vercel site, or a different Vercel URL, is a separate empty Shelf.
+- The size Chrome shows for a site is mostly cached cover images (Chrome counts those at an inflated size), not your data. The database itself is a few hundred KB.
+- Browsers can discard a site's data when a phone is very low on storage, and they only promise not to on installed or "persistent" sites. **Back up regularly.**
+
 ## Testing on a phone
 
 `npm run dev -- --host` prints a LAN address you can open on a phone on the same Wi-Fi. That address is plain `http://`, so camera scanning, the service worker and "install to home screen" will not work there; those need the deployed (HTTPS) site. Everything else works. (Dev mode never registers the service worker, so you always see your latest code.)

@@ -3,6 +3,7 @@ import { ToastProvider } from './components/Toast'
 import AddScreen from './features/add/AddScreen'
 import BackupScreen from './features/backup/BackupScreen'
 import CaptureScreen from './features/capture/CaptureScreen'
+import DiagnosticsScreen from './features/diagnostics/DiagnosticsScreen'
 import DraftsScreen from './features/drafts/DraftsScreen'
 import DroppedScreen from './features/dropped/DroppedScreen'
 import Home from './features/home/Home'
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/capture" element={<CaptureScreen />} />
         <Route path="/drafts" element={<DraftsScreen />} />
         <Route path="/dropped" element={<DroppedScreen />} />
+        <Route path="/diagnostics" element={<DiagnosticsScreen />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </ToastProvider>

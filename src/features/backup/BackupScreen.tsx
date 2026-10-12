@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useToast } from '../../components/Toast'
 import { ImportError, importBackup } from '../../data/backupIo'
 import { db } from '../../data/db'
@@ -129,6 +130,13 @@ export default function BackupScreen() {
           )}
           {lastImport && !importError && <p className="mt-3 text-sm text-accent">{lastImport}</p>}
         </section>
+
+        <Link
+          to="/diagnostics"
+          className="flex min-h-12 items-center justify-center rounded-xl text-sm font-medium text-accent ring-1 ring-line active:bg-chip"
+        >
+          Storage check: is my data safe?
+        </Link>
       </div>
     </div>
   )
