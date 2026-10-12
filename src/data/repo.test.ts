@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { computeStats } from '../domain/stats'
 import { ShelfDB } from './db'
 import { createRepo, type Repo } from './repo'
 
@@ -145,6 +146,29 @@ describe('repo', () => {
     await expect(repo.addQuote({ itemId: item.id, text: '  ' })).rejects.toThrow()
     await expect(repo.addQuote({ itemId: 'nope', text: 'hi' })).rejects.toThrow()
     expect(await db.quotes.count()).toBe(0)
+  })
+
+  it('edits log dates, rejects bad ones, and the stats follow the new finish date', async () => {
+    const item = await repo.addItem({ type: 'book', title: 'Dune' })
+    await repo.changeStatus(item.id, { type: 'start' }) // started 2026-10-01 (clock)
+    now = new Date(2026, 9, 5, 12)
+    const { log } = await repo.changeStatus(item.id, { type: 'finish', rating: 4 })
+    const monthOf = async (n: Date) => computeStats(await db.items.toArray(), await db.logs.toArray(), n).thisMonth.total
+
+    now = new Date(2026, 9, 20, 12)
+    expect(await monthOf(now)).toBe(1) // finished in October
+
+    const { undo } = await repo.updateLog(log.id, { startedAt: '2026-08-10', finishedAt: '2026-09-02' })
+    expect((await db.logs.get(log.id))?.finishedAt).toBe('2026-09-02')
+    expect(await monthOf(now)).toBe(0) // moved out of October
+    expect(await monthOf(new Date(2026, 8, 15))).toBe(1) // ...into September
+
+    await expect(repo.updateLog(log.id, { finishedAt: '2026-08-01' })).rejects.toThrow(/before the start/)
+    await expect(repo.updateLog(log.id, { finishedAt: '2027-01-01' })).rejects.toThrow(/future/)
+    expect((await db.logs.get(log.id))?.finishedAt).toBe('2026-09-02') // failed edits change nothing
+
+    await undo()
+    expect((await db.logs.get(log.id))?.finishedAt).toBe('2026-10-05')
   })
 
   it('keeps both log entries for a re-read', async () => {

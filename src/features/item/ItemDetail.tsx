@@ -1,13 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Cover } from '../../components/Cover'
+import { DateField } from '../../components/DateField'
 import { SaveOnBlurField } from '../../components/SaveOnBlurField'
 import { StarDisplay } from '../../components/Stars'
 import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
 import { repo } from '../../data/repo'
-import { isCaughtUp } from '../../domain/progress'
+import { toLocalDate } from '../../domain/dates'
+import { isCaughtUp, type LogPatch } from '../../domain/progress'
 import type { Item, ItemType, LogEntry, Status } from '../../domain/types'
 import { useGoBack } from '../../hooks/useGoBack'
 import { ItemQuotes } from '../quotes/ItemQuotes'
@@ -131,17 +133,15 @@ export default function ItemDetail() {
 
 function LogCard({ item, log, current, number }: { item: Item; log: LogEntry; current: boolean; number: number }) {
   const toast = useToast()
-  const dates = [
-    log.startedAt && `Started ${log.startedAt}`,
-    log.finishedAt && `Finished ${log.finishedAt}`,
-    log.droppedAt && `Dropped ${log.droppedAt}`,
-  ].filter(Boolean)
+  const [resetKey, setResetKey] = useState(0)
+  const today = toLocalDate(new Date())
 
-  const save = async (patch: { progress?: string; notes?: string }) => {
+  const save = async (patch: LogPatch) => {
     try {
       await repo.updateLog(log.id, patch)
     } catch (e) {
-      toast.show(`Couldn't save: ${e instanceof Error ? e.message : 'unknown error'}`)
+      toast.show(e instanceof Error ? e.message : "Couldn't save that")
+      setResetKey((k) => k + 1) // put any rejected date back to what is stored
     }
   }
 
@@ -151,8 +151,36 @@ function LogCard({ item, log, current, number }: { item: Item; log: LogEntry; cu
         <p className="text-sm font-medium">{current ? 'Current' : `Run ${number}`}</p>
         <StarDisplay rating={log.rating} size={16} />
       </div>
-      {dates.length > 0 && <p className="text-xs text-muted">{dates.join(' · ')}</p>}
-      {log.caughtUp && <p className="text-xs font-medium text-accent">Caught up</p>}
+      <div className="grid grid-cols-2 gap-2">
+        <DateField
+          label="Started"
+          value={log.startedAt}
+          max={log.finishedAt ?? log.droppedAt ?? today}
+          resetKey={resetKey}
+          onChange={(startedAt) => save({ startedAt })}
+        />
+        {log.finishedAt && (
+          <DateField
+            label="Finished"
+            value={log.finishedAt}
+            min={log.startedAt}
+            max={today}
+            resetKey={resetKey}
+            onChange={(finishedAt) => save({ finishedAt })}
+          />
+        )}
+        {log.droppedAt && (
+          <DateField
+            label="Dropped"
+            value={log.droppedAt}
+            min={log.startedAt}
+            max={today}
+            resetKey={resetKey}
+            onChange={(droppedAt) => save({ droppedAt })}
+          />
+        )}
+      </div>
+      {log.caughtUp &&<p className="text-xs font-medium text-accent">Caught up</p>}
 
       {item.status === 'in_progress' && current && (
         <SaveOnBlurField
