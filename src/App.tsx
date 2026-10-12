@@ -10,6 +10,7 @@ import ItemDetail from './features/item/ItemDetail'
 import QuotesScreen from './features/quotes/QuotesScreen'
 import { IsbnQueueRunner } from './features/scan/IsbnQueueRunner'
 import ScanScreen from './features/scan/ScanScreen'
+import ShareScreen from './features/share/ShareScreen'
 import StatsScreen from './features/stats/StatsScreen'
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/add" element={<AddScreen />} />
         <Route path="/match/:id" element={<AddScreen />} />
         <Route path="/scan" element={<ScanScreen />} />
+        <Route path="/share" element={<ShareScreen />} />
         <Route path="/backup" element={<BackupScreen />} />
         <Route path="/quotes" element={<QuotesScreen />} />
         <Route path="/stats" element={<StatsScreen />} />

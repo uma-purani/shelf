@@ -64,6 +64,14 @@ export default defineConfig({
         background_color: '#f7f5ef',
         theme_color: '#f7f5ef',
         icons: [icon('/icons/icon-192.png', 192, 'any'), icon('/icons/icon-512.png', 512, 'any'), icon('/icons/icon-maskable-512.png', 512, 'maskable')],
+        // Share a barcode photo (or several) from the gallery straight into Shelf.
+        // public/share-target-sw.js receives the POST; /#/share processes the photos.
+        share_target: {
+          action: '/share-target',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: { files: [{ name: 'photos', accept: ['image/*'] }] },
+        },
         shortcuts: [
           {
             name: 'Quick capture',
@@ -84,6 +92,7 @@ export default defineConfig({
       workbox: {
         // The whole app shell is precached, so Shelf opens (and all local features work) offline.
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        importScripts: ['share-target-sw.js'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,

@@ -71,6 +71,10 @@ From **+ Add**, tap **Scan a book's barcode**. Point the rear camera at the ISBN
 - Already on your shelf: nothing is added.
 - You can also type an ISBN (10 or 13 digits, hyphens optional). The check digit must be valid, so a misread barcode is rejected.
 
+**Batch photos:** "Pick photos of barcodes" accepts many photos at once (for example ones you took at a bookstore). They are read one at a time with a progress label, each book is added to the Queue, and one summary toast with a single Undo covers the whole batch. The same book in two photos is only added once.
+
+**Share from your gallery (installed app only):** open a barcode photo (or select several) in Google Photos / your gallery, tap **Share**, and choose **Shelf**. Shelf opens, reads the photos and adds the books. This needs Shelf installed to the home screen; after installing (or after a Shelf update that adds it) Android may take a little while to register Shelf as a share target. If it doesn't appear in the share sheet, uninstall and reinstall Shelf once. (Your data is kept in the browser, so export a **Backup** first.)
+
 **Requirements:** Chrome on Android, over **HTTPS** (the deployed Vercel site, or `localhost`). The camera and `BarcodeDetector` are not available on a plain `http://192.168...` dev address, and desktop Chrome on Windows/Linux doesn't ship `BarcodeDetector`. When scanning isn't available the screen says why and typing an ISBN still works.
 
 ## Backup and restore
