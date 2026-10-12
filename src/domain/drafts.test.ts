@@ -39,6 +39,12 @@ describe('matchDraft', () => {
     expect('creator' in m).toBe(false)
     expect('year' in m).toBe(false)
   })
+  it('takes genres from the match, but never overwrites genres the user chose', () => {
+    const m = { type: 'book' as const, title: 'Dune', genres: ['science fiction', 'Fantasy'] }
+    expect(matchDraft(draft(), m, t1).genres).toEqual(['Science Fiction', 'Fantasy'])
+    expect(matchDraft({ ...draft(), genres: ['Cozy Mystery'] }, m, t1).genres).toEqual(['Cozy Mystery'])
+    expect('genres' in matchDraft(draft(), { type: 'book', title: 'Dune' }, t1)).toBe(false)
+  })
   it('keeps a scanned ISBN over the one from the match', () => {
     const d = { ...draft(), isbn: '111' }
     expect(matchDraft(d, { type: 'book', title: 'Dune', isbn: '222' }, t1).isbn).toBe('111')

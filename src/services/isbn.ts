@@ -91,6 +91,7 @@ export function createIsbnService({
           isbn,
           coverUrl: match.coverUrl,
           externalId: match.externalId,
+          genres: match.genres,
         })
       : await repo.addItem({ type: 'book', title: `ISBN ${isbn}`, isbn, isDraft: true })
     const undo = async () => void (await repo.deleteItem(item.id))

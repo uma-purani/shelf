@@ -90,6 +90,57 @@ export function yearlyHistory(items: Item[], logs: LogEntry[], now: Date): Histo
   return buckets
 }
 
+export interface GenreStats {
+  genre: string
+  /** Finished runs of items with this genre (an item with several genres counts in each). */
+  finished: number
+  /** Average rating over those runs; undefined when none are rated. */
+  averageRating: number | undefined
+}
+
+/**
+ * Finished runs per genre, optionally for one type only. Each finished run counts once in every
+ * genre its item has, so the genre counts add up to more than the number of runs. Runs whose item
+ * has no genre are only counted in `finishedWithoutGenre`. Sorted by count, then rating, then name.
+ */
+export function statsByGenre(
+  items: Item[],
+  logs: LogEntry[],
+  type?: ItemType,
+): { genres: GenreStats[]; finishedWithoutGenre: number; finishedTotal: number } {
+  const byId = new Map(items.filter((i) => !type || i.type === type).map((i) => [i.id, i]))
+  const groups = new Map<string, { name: string; ratings: Array<number | undefined> }>()
+  let finishedWithoutGenre = 0
+  let finishedTotal = 0
+
+  for (const log of logs) {
+    if (!log.finishedAt) continue
+    const item = byId.get(log.itemId)
+    if (!item) continue
+    finishedTotal++
+    if (!item.genres?.length) {
+      finishedWithoutGenre++
+      continue
+    }
+    for (const genre of new Set(item.genres.map((g) => g.trim()).filter(Boolean))) {
+      const key = genre.toLowerCase()
+      const group = groups.get(key) ?? { name: genre, ratings: [] }
+      group.ratings.push(log.rating)
+      groups.set(key, group)
+    }
+  }
+
+  const genres: GenreStats[] = [...groups.values()].map((g) => ({
+    genre: g.name,
+    finished: g.ratings.length,
+    averageRating: averageRating(g.ratings),
+  }))
+  genres.sort(
+    (a, b) => b.finished - a.finished || (b.averageRating ?? -1) - (a.averageRating ?? -1) || a.genre.localeCompare(b.genre),
+  )
+  return { genres, finishedWithoutGenre, finishedTotal }
+}
+
 export interface SourceStats {
   /** Display name: the spelling used most often for this source. */
   name: string

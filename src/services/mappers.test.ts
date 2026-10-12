@@ -68,6 +68,38 @@ describe('mapOpenLibraryIsbn', () => {
   })
 })
 
+describe('genres from metadata', () => {
+  it('maps Open Library search subjects to broad genres', () => {
+    const [r] = mapOpenLibrary({
+      docs: [{ key: '/works/OL1W', title: 'Dune', subject: ['Fiction', 'Science fiction', 'Fantasy fiction', 'Ecology'] }],
+    })
+    expect(r.genres).toEqual(['Science Fiction', 'Fantasy'])
+  })
+  it('leaves genres off when a book has no usable subjects', () => {
+    const [r] = mapOpenLibrary({ docs: [{ key: '/works/OL2W', title: 'Untitled', subject: ['Houses'] }] })
+    expect('genres' in r && r.genres !== undefined).toBe(false)
+  })
+  it('maps TMDB genre ids for movies and shows', () => {
+    const out = mapTmdb({
+      results: [
+        { id: 1, media_type: 'movie', title: 'Dune', genre_ids: [878, 12] },
+        { id: 2, media_type: 'tv', name: 'Severance', genre_ids: [10765, 18] },
+        { id: 3, media_type: 'tv', name: 'No genres', genre_ids: [] },
+      ],
+    })
+    expect(out[0].genres).toEqual(['Science Fiction', 'Adventure'])
+    expect(out[1].genres).toEqual(['Science Fiction', 'Fantasy', 'Drama'])
+    expect(out[2].genres).toBeUndefined()
+  })
+  it('maps subjects on an ISBN lookup, whether strings or objects', () => {
+    const isbn = '9780441172719'
+    const withStrings = { [`ISBN:${isbn}`]: { details: { title: 'Dune', subjects: ['Science fiction', 'Fiction'] } } }
+    const withObjects = { [`ISBN:${isbn}`]: { details: { title: 'Dune', subjects: [{ name: 'Science fiction' }, { name: 'Fantasy' }] } } }
+    expect(mapOpenLibraryIsbn(withStrings, isbn)?.genres).toEqual(['Science Fiction'])
+    expect(mapOpenLibraryIsbn(withObjects, isbn)?.genres).toEqual(['Science Fiction', 'Fantasy'])
+  })
+})
+
 describe('mapTmdb', () => {
   it('maps movies and shows, drops people and untitled entries', () => {
     const out = mapTmdb({

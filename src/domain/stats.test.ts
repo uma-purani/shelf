@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countFinishedInMonth, computeStats, monthlyHistory, statsBySource, yearlyHistory } from './stats'
+import { countFinishedInMonth, computeStats, monthlyHistory, statsByGenre, statsBySource, yearlyHistory } from './stats'
 import type { Item, ItemType, LogEntry, Status } from './types'
 
 const item = (id: string, type: ItemType, status: Status = 'finished'): Item => ({
@@ -195,6 +195,50 @@ describe('yearlyHistory', () => {
     const h = yearlyHistory(items, [log('b1', '2025-03-01', 4)], now)
     expect(h.map((b) => b.label)).toEqual(['2025', '2026'])
     expect(h[1].total).toBe(0)
+  })
+})
+
+describe('statsByGenre', () => {
+  const g = (id: string, type: ItemType, genres?: string[]): Item => ({ ...item(id, type), ...(genres ? { genres } : {}) })
+
+  it('counts each finished run in every genre of its item, with average ratings', () => {
+    const items = [g('a', 'book', ['Fantasy', 'Mystery']), g('b', 'movie', ['Fantasy']), g('c', 'show', ['Mystery'])]
+    const logs = [log('a', '2026-01-01', 4), log('b', '2026-02-01', 5), log('c', '2026-03-01', 2)]
+    const r = statsByGenre(items, logs)
+    expect(r.genres).toEqual([
+      { genre: 'Fantasy', finished: 2, averageRating: 4.5 },
+      { genre: 'Mystery', finished: 2, averageRating: 3 },
+    ])
+    expect(r.finishedTotal).toBe(3) // 3 runs, though the genre counts add up to 4
+  })
+
+  it('counts a re-read each time and groups genres ignoring case', () => {
+    const items = [g('a', 'book', ['Fantasy']), g('b', 'book', ['fantasy'])]
+    const r = statsByGenre(items, [log('a', '2026-01-01', 4), log('a', '2026-06-01', 5), log('b', '2026-02-01', 3)])
+    expect(r.genres).toEqual([{ genre: 'Fantasy', finished: 3, averageRating: 4 }])
+  })
+
+  it('reports finished runs with no genre separately, and ignores unfinished runs and deleted items', () => {
+    const items = [g('a', 'book', ['Fantasy']), g('b', 'book')]
+    const r = statsByGenre(items, [log('a', '2026-01-01', 4), log('b', '2026-02-01', 4), log('b'), log('ghost', '2026-03-01', 5)])
+    expect(r.finishedWithoutGenre).toBe(1)
+    expect(r.finishedTotal).toBe(2)
+    expect(r.genres.map((x) => x.genre)).toEqual(['Fantasy'])
+  })
+
+  it('can be limited to one type', () => {
+    const items = [g('a', 'book', ['Fantasy']), g('b', 'movie', ['Drama'])]
+    const logs = [log('a', '2026-01-01', 4), log('b', '2026-02-01', 5)]
+    expect(statsByGenre(items, logs, 'movie').genres.map((x) => x.genre)).toEqual(['Drama'])
+    expect(statsByGenre(items, logs, 'show')).toEqual({ genres: [], finishedWithoutGenre: 0, finishedTotal: 0 })
+  })
+
+  it('sorts by count, then rating, then name, and leaves unrated genres without an average', () => {
+    const items = [g('a', 'book', ['Zeta']), g('b', 'book', ['Alpha']), g('c', 'book', ['Mid']), g('d', 'book', ['Many']), g('e', 'book', ['Many'])]
+    const logs = [log('a', '2026-01-01', 3), log('b', '2026-01-01', 3), log('c', '2026-01-01', 5), log('d', '2026-01-01'), log('e', '2026-01-01')]
+    const r = statsByGenre(items, logs)
+    expect(r.genres.map((x) => x.genre)).toEqual(['Many', 'Mid', 'Alpha', 'Zeta'])
+    expect(r.genres[0].averageRating).toBeUndefined()
   })
 })
 

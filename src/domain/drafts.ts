@@ -1,3 +1,4 @@
+import { normalizeGenres } from './genres'
 import type { Item } from './types'
 
 /** Metadata fields a search result can fill in on a draft. */
@@ -9,11 +10,13 @@ export interface MetadataMatch {
   isbn?: string
   coverUrl?: string
   externalId?: string
+  genres?: string[]
 }
 
 /**
  * Fill a draft in from a metadata match. Keeps what the user owns (id, status, recommender,
- * tags, createdAt) and takes everything descriptive from the match; the draft flag clears.
+ * tags, createdAt, and any genres they already chose) and takes everything descriptive from the
+ * match; the draft flag clears.
  */
 export function matchDraft(draft: Item, match: MetadataMatch, now: Date): Item {
   const { creator, year, isbn, coverUrl, externalId, ...rest } = draft
@@ -29,6 +32,7 @@ export function matchDraft(draft: Item, match: MetadataMatch, now: Date): Item {
     ...(match.isbn && !isbn ? { isbn: match.isbn } : {}),
     ...(match.coverUrl ? { coverUrl: match.coverUrl } : {}),
     ...(match.externalId ? { externalId: match.externalId } : {}),
+    ...(!draft.genres?.length && match.genres?.length ? { genres: normalizeGenres(match.genres) } : {}),
     isDraft: false,
     updatedAt: now.toISOString(),
   }

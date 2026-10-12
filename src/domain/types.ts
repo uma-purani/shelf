@@ -18,6 +18,8 @@ export interface Item {
   status: Status
   isDraft: boolean
   recommendedBy?: string
+  /** Genres from the shared vocabulary (see genres.ts): filled from metadata, editable by hand. */
+  genres?: string[]
   tags: string[]
   createdAt: DateTimeString
   updatedAt: DateTimeString

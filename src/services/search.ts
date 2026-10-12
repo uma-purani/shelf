@@ -25,7 +25,7 @@ const bookQuery = (q: string) => (looksLikeIsbn(q) ? `isbn:${q.replace(/[\s-]/g,
 const searchBooks = async (q: string, signal: AbortSignal) =>
   mapOpenLibrary(
     await getJson(
-      `https://openlibrary.org/search.json?q=${encodeURIComponent(bookQuery(q))}&limit=${MAX_BOOKS}&fields=key,title,author_name,first_publish_year,cover_i,isbn`,
+      `https://openlibrary.org/search.json?q=${encodeURIComponent(bookQuery(q))}&limit=${MAX_BOOKS}&fields=key,title,author_name,first_publish_year,cover_i,isbn,subject`,
       signal,
     ),
   ).slice(0, MAX_BOOKS)

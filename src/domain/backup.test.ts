@@ -43,7 +43,7 @@ const now = new Date(2026, 9, 15, 12)
 describe('buildBackup / parseBackup', () => {
   it('round-trips a snapshot', () => {
     const s = snap({
-      items: [item('a', '2026-10-01', { creator: 'Z', year: 1999, recommendedBy: 'Sam', tags: ['x'] })],
+      items: [item('a', '2026-10-01', { creator: 'Z', year: 1999, recommendedBy: 'Sam', tags: ['x'], genres: ['Mystery', 'Crime'] })],
       logs: [log('l1', 'a', { rating: 4.5, finishedAt: '2026-10-02', caughtUp: true })],
       quotes: [quote('q1', 'a', { location: 'p. 3' })],
       pendingLookups: [{ id: 'p1', isbn: '9780441172719', createdAt: iso('2026-10-01') }],

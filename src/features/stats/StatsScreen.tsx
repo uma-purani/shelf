@@ -6,6 +6,7 @@ import { StackedBars } from '../../components/StackedBars'
 import { computeStats, monthlyHistory, statsBySource, yearlyHistory, type SourceStats, type TypeCounts } from '../../domain/stats'
 import { formatRating } from '../../domain/rating'
 import { useGoBack } from '../../hooks/useGoBack'
+import { GenreCard } from './GenreCard'
 
 const TYPE_ROWS = [
   { key: 'book', label: 'Books' },
@@ -65,6 +66,8 @@ export default function StatsScreen() {
               <StackedBars buckets={data.yearly} ariaLabel="Finished per year" />
             </section>
           )}
+
+          <GenreCard items={items ?? []} logs={logs ?? []} />
 
           <section className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-line" aria-label="Average rating">
             <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Average rating</h2>

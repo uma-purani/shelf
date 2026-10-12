@@ -13,6 +13,8 @@ import { isCaughtUp, type LogPatch } from '../../domain/progress'
 import type { Item, ItemType, LogEntry, Status } from '../../domain/types'
 import { useGoBack } from '../../hooks/useGoBack'
 import { ItemQuotes } from '../quotes/ItemQuotes'
+import { GenresField } from './GenresField'
+import { KNOWN_GENRES } from '../../domain/genres'
 
 const TYPE_LABEL: Record<ItemType, string> = { book: 'Book', movie: 'Movie', show: 'Show' }
 const STATUS_LABEL: Record<Status, string> = {
@@ -39,6 +41,17 @@ export default function ItemDetail() {
     () => [...new Set((allItems ?? []).map((i) => i.recommendedBy).filter((r): r is string => !!r))].sort(),
     [allItems],
   )
+
+  const allGenres = useMemo(
+    () =>
+      [...new Set([...KNOWN_GENRES, ...(allItems ?? []).flatMap((i) => i.genres ?? [])])].sort((a, b) => a.localeCompare(b)),
+    [allItems],
+  )
+
+  async function saveGenres(current: Item, genres: string[]) {
+    const { genres: _old, ...rest } = current
+    await repo.replaceItem({ ...rest, ...(genres.length ? { genres } : {}), updatedAt: new Date().toISOString() })
+  }
 
   async function saveRecommendedBy(current: Item, text: string) {
     const { recommendedBy: _old, ...rest } = current
@@ -88,7 +101,8 @@ export default function ItemDetail() {
         </div>
       </div>
 
-      <section className="mt-6 space-y-3">
+      <section className="mt-6 space-y-5">
+        <GenresField genres={item.genres ?? []} suggestions={allGenres} onChange={(genres) => saveGenres(item, genres)} />
         <SaveOnBlurField
           label="Recommended by"
           value={item.recommendedBy}

@@ -54,6 +54,7 @@ function itemProblem(o: Obj): string | null {
   if (!STATUSES.includes(o.status as string)) return 'status'
   if (typeof o.isDraft !== 'boolean') return 'isDraft'
   if (!Array.isArray(o.tags) || !o.tags.every(isStr)) return 'tags'
+  if (o.genres !== undefined && (!Array.isArray(o.genres) || !o.genres.every(isStr))) return 'genres'
   if (!isStr(o.createdAt)) return 'createdAt'
   if (!isStr(o.updatedAt)) return 'updatedAt'
   for (const k of ['creator', 'isbn', 'coverUrl', 'externalId', 'recommendedBy']) if (!optStr(o, k)) return k
@@ -86,7 +87,7 @@ function pick<T>(o: Obj, keys: readonly string[]): T {
   for (const k of keys) if (o[k] !== undefined) out[k] = o[k]
   return out as T
 }
-const ITEM_KEYS = ['id', 'type', 'title', 'creator', 'year', 'isbn', 'coverUrl', 'externalId', 'status', 'isDraft', 'recommendedBy', 'tags', 'createdAt', 'updatedAt']
+const ITEM_KEYS = ['id', 'type', 'title', 'creator', 'year', 'isbn', 'coverUrl', 'externalId', 'status', 'isDraft', 'recommendedBy', 'genres', 'tags', 'createdAt', 'updatedAt']
 const LOG_KEYS = ['id', 'itemId', 'startedAt', 'finishedAt', 'droppedAt', 'rating', 'progress', 'caughtUp', 'notes', 'createdAt', 'updatedAt']
 const QUOTE_KEYS = ['id', 'itemId', 'text', 'location', 'createdAt', 'updatedAt']
 const PENDING_KEYS = ['id', 'isbn', 'createdAt']

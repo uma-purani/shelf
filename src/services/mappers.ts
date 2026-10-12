@@ -1,3 +1,4 @@
+import { genresFromSubjects, genresFromTmdbIds } from '../domain/genres'
 import type { NewItemInput } from '../domain/items'
 
 /** A search hit, ready to be added as an item. `key` is unique per source+id for React lists. */
@@ -13,10 +14,12 @@ interface OpenLibraryDoc {
   first_publish_year?: number
   cover_i?: number
   isbn?: string[]
+  subject?: string[]
 }
 
 interface TmdbResult {
   id?: number
+  genre_ids?: number[]
   media_type?: string
   title?: string
   name?: string
@@ -44,10 +47,13 @@ export function mapOpenLibrary(json: unknown): SearchResult[] {
       isbn,
       coverUrl: d.cover_i ? OPEN_LIBRARY_COVER(d.cover_i) : undefined,
       externalId: d.key,
+      genres: orUndefined(genresFromSubjects(d.subject)),
     })
   }
   return out
 }
+
+const orUndefined = <T,>(list: T[]) => (list.length > 0 ? list : undefined)
 
 /** What an ISBN lookup found about a book. */
 export interface IsbnMatch {
@@ -58,11 +64,13 @@ export interface IsbnMatch {
   coverUrl?: string
   /** The Open Library *work* key, the same id search results use, so scan and search dedupe. */
   externalId?: string
+  genres?: string[]
 }
 
 interface OpenLibraryDetails {
   details?: {
     title?: string
+    subjects?: Array<string | { name?: string }>
     authors?: Array<{ name?: string }>
     publish_date?: string
     covers?: number[]
@@ -89,6 +97,7 @@ export function mapOpenLibraryIsbn(json: unknown, isbn: string): IsbnMatch | nul
     year: Number.isNaN(year) ? undefined : year,
     coverUrl: d.covers?.[0] ? OPEN_LIBRARY_COVER(d.covers[0]) : undefined,
     externalId: d.works?.[0]?.key,
+    genres: orUndefined(genresFromSubjects((d.subjects ?? []).map((s) => (typeof s === 'string' ? s : (s.name ?? ''))))),
   }
 }
 
@@ -110,6 +119,7 @@ export function mapTmdb(json: unknown): SearchResult[] {
       year: Number.isNaN(year) ? undefined : year,
       coverUrl: r.poster_path ? TMDB_POSTER(r.poster_path) : undefined,
       externalId,
+      genres: orUndefined(genresFromTmdbIds(r.genre_ids)),
     })
   }
   return out

@@ -1,3 +1,4 @@
+import { normalizeGenres } from './genres'
 import type { Item, ItemType } from './types'
 
 export interface NewItemInput {
@@ -9,6 +10,7 @@ export interface NewItemInput {
   coverUrl?: string
   externalId?: string
   recommendedBy?: string
+  genres?: string[]
   tags?: string[]
   isDraft?: boolean
 }
@@ -34,5 +36,7 @@ export function createItem(input: NewItemInput, now: Date, id: string): Item {
     const value = input[key]
     if (value !== undefined && value !== '') (item as unknown as Record<string, unknown>)[key] = value
   }
+  const genres = normalizeGenres(input.genres)
+  if (genres.length > 0) item.genres = genres
   return item
 }
