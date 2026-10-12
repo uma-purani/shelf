@@ -22,6 +22,134 @@ export interface Stats {
 
 const emptyCounts = (): TypeCounts => ({ book: 0, movie: 0, show: 0, total: 0 })
 
+export interface HistoryBucket {
+  /** "2026-10" for a month, "2026" for a year. */
+  key: string
+  /** Short axis label: "Oct" or "2026". */
+  label: string
+  year: number
+  book: number
+  movie: number
+  show: number
+  total: number
+}
+
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+function emptyBucket(key: string, label: string, year: number): HistoryBucket {
+  return { key, label, year, book: 0, movie: 0, show: 0, total: 0 }
+}
+
+/** Finished runs as [item type, "YYYY-MM-DD"], skipping runs whose item no longer exists. */
+function finishedRuns(items: Item[], logs: LogEntry[]): Array<[ItemType, string]> {
+  const typeById = new Map(items.map((i) => [i.id, i.type]))
+  const runs: Array<[ItemType, string]> = []
+  for (const log of logs) {
+    const type = typeById.get(log.itemId)
+    if (log.finishedAt && type) runs.push([type, log.finishedAt])
+  }
+  return runs
+}
+
+/** Finished runs per calendar month for the last `months` months, oldest first, ending with this month. */
+export function monthlyHistory(items: Item[], logs: LogEntry[], now: Date, months = 12): HistoryBucket[] {
+  const buckets: HistoryBucket[] = []
+  const byKey = new Map<string, HistoryBucket>()
+  for (let back = months - 1; back >= 0; back--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - back, 1)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const bucket = emptyBucket(key, MONTH_LABELS[d.getMonth()], d.getFullYear())
+    buckets.push(bucket)
+    byKey.set(key, bucket)
+  }
+  for (const [type, finishedAt] of finishedRuns(items, logs)) {
+    const bucket = byKey.get(finishedAt.slice(0, 7))
+    if (bucket) {
+      bucket[type]++
+      bucket.total++
+    }
+  }
+  return buckets
+}
+
+/** Finished runs per calendar year, from the first year you finished anything to this year (no gaps). */
+export function yearlyHistory(items: Item[], logs: LogEntry[], now: Date): HistoryBucket[] {
+  const runs = finishedRuns(items, logs)
+  if (runs.length === 0) return []
+  const years = runs.map(([, finishedAt]) => Number(finishedAt.slice(0, 4)))
+  const first = Math.min(...years)
+  const last = Math.max(...years, now.getFullYear())
+
+  const buckets: HistoryBucket[] = []
+  for (let y = first; y <= last; y++) buckets.push(emptyBucket(String(y), String(y), y))
+  for (const [type, finishedAt] of runs) {
+    const bucket = buckets[Number(finishedAt.slice(0, 4)) - first]
+    bucket[type]++
+    bucket.total++
+  }
+  return buckets
+}
+
+export interface SourceStats {
+  /** Display name: the spelling used most often for this source. */
+  name: string
+  /** Items recommended by this source. */
+  recommended: number
+  /** Of those, how many have been finished at least once. */
+  finished: number
+  dropped: number
+  /** Average rating over the finished runs of these items; undefined when none are rated. */
+  averageRating: number | undefined
+}
+
+/**
+ * Stats per recommendation source ("who do I actually finish and rate highly?").
+ * Sources match ignoring case and surrounding spaces ("sam" = " Sam "). Items with no source are
+ * only counted in `unattributed`. Sorted by how much they recommended, then by average rating.
+ */
+export function statsBySource(items: Item[], logs: LogEntry[]): { sources: SourceStats[]; unattributed: number } {
+  const finishedRuns = new Map<string, Array<number | undefined>>()
+  for (const log of logs) {
+    if (!log.finishedAt) continue
+    finishedRuns.set(log.itemId, [...(finishedRuns.get(log.itemId) ?? []), log.rating])
+  }
+
+  type Group = { spellings: Map<string, number>; items: Item[] }
+  const groups = new Map<string, Group>()
+  let unattributed = 0
+  for (const item of items) {
+    const raw = item.recommendedBy?.trim()
+    if (!raw) {
+      unattributed++
+      continue
+    }
+    const key = raw.toLowerCase()
+    const group: Group = groups.get(key) ?? { spellings: new Map(), items: [] }
+    group.spellings.set(raw, (group.spellings.get(raw) ?? 0) + 1)
+    group.items.push(item)
+    groups.set(key, group)
+  }
+
+  const sources: SourceStats[] = [...groups.values()].map(({ spellings, items: group }) => {
+    const [name] = [...spellings.entries()].sort((a, b) => b[1] - a[1])[0] // most used spelling; first seen wins ties
+    return {
+      name,
+      recommended: group.length,
+      finished: group.filter((i) => finishedRuns.has(i.id)).length,
+      dropped: group.filter((i) => i.status === 'dropped').length,
+      averageRating: averageRating(group.flatMap((i) => finishedRuns.get(i.id) ?? [])),
+    }
+  })
+
+  sources.sort(
+    (a, b) =>
+      b.recommended - a.recommended ||
+      (b.averageRating ?? -1) - (a.averageRating ?? -1) ||
+      a.name.localeCompare(b.name),
+  )
+  return { sources, unattributed }
+}
+
 /** Number of log entries finished in the same calendar month as `now`. Re-reads each count. */
 export function countFinishedInMonth(logs: LogEntry[], now: Date): number {
   const prefix = toLocalDate(now).slice(0, 7)

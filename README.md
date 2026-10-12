@@ -61,6 +61,13 @@ npm run preview      # http://localhost:4173 (also serves /api/tmdb from your .e
 
 Open it once, then stop the preview server (Ctrl+C) and reload the page: it should still open.
 
+## Progress and stats
+
+- **Progress:** in-progress items show a **Progress** line (tap to type, e.g. `S4E7` or `p. 142`) with one-tap buttons: shows get **+1 ep** and **Next season**, books get **+10 pp**. Free text like "halfway through" is never overwritten by a button; edit it by hand instead. Each tap has an Undo.
+- **Caught up:** a show you're up to date on (waiting for the next season) can be marked **Caught up** from its menu. It stays in progress, unrated, in its own group.
+- **Stats** (tap "N finished this month"): counts by type for this month, this year and all time, a 12-month chart, a by-year chart, average ratings, and **By recommendation**: for each person or source you set under "Recommended by", how many they recommended, how many you finished, and the average rating you gave. Sources match ignoring capitalization.
+- **Dropped** items live on their own screen (top right), not on the main one.
+
 ## Scanning book barcodes
 
 From **+ Add**, tap **Scan a book's barcode**. Point the rear camera at the ISBN barcode on the back of a book, or pick a photo of one from your gallery. It uses the browser's built-in `BarcodeDetector`, so there is no library or API key.

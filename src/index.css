@@ -27,6 +27,11 @@
 
   --star: #d9a441;
   --star-empty: #d3cfc2;
+
+  /* chart series: books / movies / shows (also named in every legend, never color alone) */
+  --type-book: #2f6b4f;
+  --type-movie: #d9a441;
+  --type-show: #5b7fa6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -50,6 +55,10 @@
 
     --star: #e3b55a;
     --star-empty: #34413a;
+
+    --type-book: #7fb89a;
+    --type-movie: #e3b55a;
+    --type-show: #8fb0d4;
   }
 }
 
@@ -70,6 +79,9 @@
   --color-danger: var(--danger);
   --color-star: var(--star);
   --color-star-empty: var(--star-empty);
+  --color-type-book: var(--type-book);
+  --color-type-movie: var(--type-movie);
+  --color-type-show: var(--type-show);
 }
 
 body {
