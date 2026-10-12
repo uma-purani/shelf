@@ -71,6 +71,7 @@ export default function DroppedScreen() {
             onDrop={noop}
             onCaughtUp={noop}
             onSaveProgress={noop}
+            onBump={noop}
           />
         ))}
       </ul>

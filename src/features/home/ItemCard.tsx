@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Cover } from '../../components/Cover'
 import { StarDisplay, StarRow } from '../../components/Stars'
+import { bumpOptions, type BumpKind, type BumpOption } from '../../domain/bump'
 import { canBeCaughtUp, isCaughtUp } from '../../domain/progress'
 import type { Item, ItemType, LogEntry } from '../../domain/types'
 
@@ -15,6 +16,8 @@ interface Props {
   onDelete: () => void
   onCaughtUp: (value: boolean) => void
   onSaveProgress: (text: string) => void
+  /** One-tap increment of the progress text (e.g. next episode). */
+  onBump: (kind: BumpKind) => void
 }
 
 const TYPE_LABEL = { book: 'Book', movie: 'Movie', show: 'Show' } as const
@@ -35,6 +38,7 @@ export function ItemCard({
   onDelete,
   onCaughtUp,
   onSaveProgress,
+  onBump,
 }: Props) {
   const [rating, setRating] = useState(false)
   const [menu, setMenu] = useState(false)
@@ -157,6 +161,8 @@ export function ItemCard({
           value={log?.progress}
           hint={PROGRESS_HINT[item.type]}
           onSave={onSaveProgress}
+          bumps={bumpOptions(item.type)}
+          onBump={onBump}
         />
       )}
 
@@ -175,8 +181,23 @@ export function ItemCard({
   )
 }
 
-/** Tap-to-edit progress line (e.g. "S4E7", "p. 142"). Saves on Enter or blur; Escape cancels. */
-function ProgressField({ value, hint, onSave }: { value: string | undefined; hint: string; onSave: (text: string) => void }) {
+/**
+ * Tap-to-edit progress line (e.g. "S4E7", "p. 142") with one-tap increment buttons
+ * ("+1 ep", "Next season", "+10 pp"). Saves on Enter or blur; Escape cancels.
+ */
+function ProgressField({
+  value,
+  hint,
+  onSave,
+  bumps,
+  onBump,
+}: {
+  value: string | undefined
+  hint: string
+  onSave: (text: string) => void
+  bumps: BumpOption[]
+  onBump: (kind: BumpKind) => void
+}) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value ?? '')
 
@@ -187,17 +208,29 @@ function ProgressField({ value, hint, onSave }: { value: string | undefined; hin
 
   if (!editing) {
     return (
-      <button
-        type="button"
-        onClick={() => {
-          setDraft(value ?? '')
-          setEditing(true)
-        }}
-        className="mt-1 flex min-h-9 w-full items-center gap-2 rounded-lg px-1 text-left text-xs active:bg-chip"
-      >
-        <span className="text-muted">Progress</span>
-        <span className={value ? 'font-medium' : 'text-muted'}>{value ?? `Add (e.g. ${hint})`}</span>
-      </button>
+      <div className="mt-1 flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(value ?? '')
+            setEditing(true)
+          }}
+          className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-1 text-left text-xs active:bg-chip"
+        >
+          <span className="text-muted">Progress</span>
+          <span className={`truncate ${value ? 'font-medium' : 'text-muted'}`}>{value ?? `Add (e.g. ${hint})`}</span>
+        </button>
+        {bumps.map((b) => (
+          <button
+            key={b.kind}
+            type="button"
+            onClick={() => onBump(b.kind)}
+            className="min-h-11 shrink-0 rounded-xl px-3 text-xs font-semibold text-accent ring-1 ring-line active:bg-chip"
+          >
+            {b.label}
+          </button>
+        ))}
+      </div>
     )
   }
   return (

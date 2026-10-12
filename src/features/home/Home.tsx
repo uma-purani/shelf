@@ -3,6 +3,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
 import { repo } from '../../data/repo'
+import { bumpProgress, type BumpKind } from '../../domain/bump'
 import { isCaughtUp } from '../../domain/progress'
 import { countFinishedInMonth } from '../../domain/stats'
 import { latestLog, TransitionError, type StatusAction } from '../../domain/status'
@@ -105,6 +106,22 @@ export default function Home() {
     }
   }
 
+  async function bump(item: Item, kind: BumpKind) {
+    const log = logFor(item.id)
+    if (!log) return
+    const next = bumpProgress(kind, log.progress)
+    if (next === undefined) {
+      toast.show(`Can't add to “${log.progress}”. Tap Progress to edit it instead.`)
+      return
+    }
+    try {
+      const { undo } = await repo.updateLog(log.id, { progress: next })
+      toast.show(`Progress: ${next}`, undo)
+    } catch (e) {
+      toast.show(`Couldn't update progress: ${e instanceof Error ? e.message : 'unknown error'}`)
+    }
+  }
+
   /** Everything an ItemCard can do, bound to one item. */
   const handlers = (item: Item) => ({
     onStart: () => run(item, { type: 'start' }, `Started “${item.title}”`),
@@ -113,6 +130,7 @@ export default function Home() {
     onDelete: () => remove(item),
     onCaughtUp: (value: boolean) => setCaughtUp(item, value),
     onSaveProgress: (text: string) => saveProgress(item, text),
+    onBump: (kind: BumpKind) => bump(item, kind),
   })
 
   const loading = items === undefined || logs === undefined
