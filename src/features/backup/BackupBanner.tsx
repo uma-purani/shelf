@@ -2,44 +2,52 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
 import { setSetting, SETTING_KEYS } from '../../data/settings'
-import { daysSince, shouldShowBackupReminder } from '../../domain/backup'
-import { exportNow } from './exportAction'
+import { backupReminder, countUnsavedChanges, daysSince } from '../../domain/backup'
+import { backUpNow, describeBackUp } from './exportAction'
 
 /**
- * Quiet, dismissible reminder on Home: more than 30 days since the last export, or never
- * exported with at least 10 items. One tap exports. Dismissing hides it for a week.
+ * Quiet, dismissible reminder on Home. It appears when 5 or more additions or edits are not
+ * in any backup yet, when the last backup is over 30 days old, or when there has never been
+ * one and the library has 10+ items. One tap sends a backup off the phone (share sheet).
  */
 export function BackupBanner() {
   const toast = useToast()
   const state = useLiveQuery(async () => {
-    const [last, dismissed, itemCount] = await Promise.all([
+    const [last, dismissed, items, logs, quotes] = await Promise.all([
       db.settings.get(SETTING_KEYS.lastBackupAt),
       db.settings.get(SETTING_KEYS.reminderDismissedAt),
-      db.items.count(),
+      db.items.toArray(),
+      db.logs.toArray(),
+      db.quotes.toArray(),
     ])
+    const lastBackupAt = last?.value as string | undefined
     return {
-      lastBackupAt: last?.value as string | undefined,
+      lastBackupAt,
       dismissedAt: dismissed?.value as string | undefined,
-      itemCount,
+      itemCount: items.length,
+      unsavedChanges: countUnsavedChanges({ items, logs, quotes }, lastBackupAt),
     }
   }, [])
 
   if (!state) return null
   const now = new Date()
-  if (!shouldShowBackupReminder({ ...state, now })) return null
+  const { show, reason } = backupReminder({ ...state, now })
+  if (!show) return null
 
   const days = daysSince(state.lastBackupAt, now)
+  const changes = state.unsavedChanges
   const message =
-    days === undefined
-      ? 'Your library lives only on this phone. Save a backup.'
-      : `It has been ${days} days since your last backup.`
+    reason === 'changes'
+      ? `${changes} ${changes === 1 ? 'change isn' : 'changes aren'}'t backed up yet. Your data lives only on this phone.`
+      : days === undefined
+        ? 'Your library lives only on this phone. Save a backup.'
+        : `It has been ${days} days since your last backup.`
 
-  const doExport = async () => {
+  const doBackUp = async () => {
     try {
-      const { fileName } = await exportNow()
-      toast.show(`Backup saved: ${fileName}`)
+      toast.show(describeBackUp(await backUpNow()))
     } catch (e) {
-      toast.show(`Couldn't export: ${e instanceof Error ? e.message : 'unknown error'}`)
+      toast.show(`Couldn't back up: ${e instanceof Error ? e.message : 'unknown error'}`)
     }
   }
 
@@ -48,10 +56,10 @@ export function BackupBanner() {
       <p className="min-w-0 flex-1 text-xs leading-snug">{message}</p>
       <button
         type="button"
-        onClick={doExport}
+        onClick={doBackUp}
         className="min-h-11 shrink-0 rounded-xl bg-accent px-3 text-sm font-semibold text-on-accent active:opacity-70"
       >
-        Export now
+        Back up now
       </button>
       <button
         type="button"

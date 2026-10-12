@@ -8,6 +8,9 @@ export const BACKUP_VERSION = 1
 export const BACKUP_REMINDER_DAYS = 30
 export const BACKUP_REMINDER_MIN_ITEMS = 10
 export const BACKUP_REMINDER_SNOOZE_DAYS = 7
+/** Records added or edited since the last backup before Shelf starts nudging. */
+export const BACKUP_REMINDER_CHANGES = 5
+export const BACKUP_REMINDER_CHANGES_SNOOZE_DAYS = 1
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -256,21 +259,57 @@ export function daysSince(iso: string | undefined, now: Date): number | undefine
   return t === undefined ? undefined : Math.max(0, Math.floor((now.getTime() - t) / DAY_MS))
 }
 
+/** How many records (items, log entries, quotes) were added or edited since the last backup. Everything counts if there never was one. */
+export function countUnsavedChanges(
+  data: Pick<Snapshot, 'items' | 'logs' | 'quotes'>,
+  lastBackupAt: string | undefined,
+): number {
+  const since = lastBackupAt && validTime(lastBackupAt) !== undefined ? lastBackupAt : undefined
+  const newer = (stamp: string) => since === undefined || stamp > since
+  return (
+    data.items.filter((i) => newer(i.updatedAt)).length +
+    data.logs.filter((l) => newer(stampOf(l))).length +
+    data.quotes.filter((q) => newer(stampOf(q))).length
+  )
+}
+
+export type ReminderReason = 'changes' | 'age' | 'never'
+
 /**
- * Show the reminder when the last export is more than 30 days old, or when there has never
- * been one and the library has at least 10 items. Dismissing hides it for a week.
+ * Whether to nudge the user to back up, and why:
+ * - `changes`: 5 or more records are not in any backup yet (snoozed for a day when dismissed),
+ * - `age`: the last export is more than 30 days old,
+ * - `never`: no export yet and the library has at least 10 items.
+ * Age and "never" reminders stay dismissed for a week.
  */
-export function shouldShowBackupReminder(args: {
+export function backupReminder(args: {
   lastBackupAt?: string
   dismissedAt?: string
   itemCount: number
+  unsavedChanges?: number
   now: Date
-}): boolean {
-  const { lastBackupAt, dismissedAt, itemCount, now } = args
-  const dismissed = validTime(dismissedAt)
-  if (dismissed !== undefined && now.getTime() - dismissed < BACKUP_REMINDER_SNOOZE_DAYS * DAY_MS) return false
+}): { show: boolean; reason?: ReminderReason } {
+  const { lastBackupAt, dismissedAt, itemCount, unsavedChanges = 0, now } = args
 
   const last = validTime(lastBackupAt)
-  if (last !== undefined) return now.getTime() - last > BACKUP_REMINDER_DAYS * DAY_MS
-  return itemCount >= BACKUP_REMINDER_MIN_ITEMS
+  const timeReason: ReminderReason | undefined =
+    last !== undefined
+      ? now.getTime() - last > BACKUP_REMINDER_DAYS * DAY_MS
+        ? 'age'
+        : undefined
+      : itemCount >= BACKUP_REMINDER_MIN_ITEMS
+        ? 'never'
+        : undefined
+  const reason: ReminderReason | undefined = timeReason ?? (unsavedChanges >= BACKUP_REMINDER_CHANGES ? 'changes' : undefined)
+  if (!reason) return { show: false }
+
+  const dismissed = validTime(dismissedAt)
+  const snoozeDays = timeReason ? BACKUP_REMINDER_SNOOZE_DAYS : BACKUP_REMINDER_CHANGES_SNOOZE_DAYS
+  if (dismissed !== undefined && now.getTime() - dismissed < snoozeDays * DAY_MS) return { show: false }
+  return { show: true, reason }
+}
+
+/** Yes/no form of backupReminder. */
+export function shouldShowBackupReminder(args: Parameters<typeof backupReminder>[0]): boolean {
+  return backupReminder(args).show
 }

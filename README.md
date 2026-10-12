@@ -46,7 +46,7 @@ Updates: every push to `main` redeploys. An installed Shelf picks up the new ver
 3. Open Shelf from the new icon: it runs full screen like a native app.
 4. **Long-press the icon** to get the shortcuts **Quick capture** and **Scan a book**.
 
-Once it has loaded once, Shelf opens **offline**: the app itself is cached by a service worker, and everything stored on the phone works without a connection (browsing, Start / Finish with ratings, notes, quotes, quick capture, stats, backup). What needs a connection: searching Open Library / TMDB, looking up a scanned ISBN (offline scans are queued and added automatically when you're back online), and loading covers you haven't seen before. Covers you have seen stay available offline (the most recent ~100).
+Once it has loaded once, Shelf opens **offline**: the app itself is cached by a service worker, and everything stored on the phone works without a connection (browsing, Start / Finish with ratings, notes, quotes, quick capture, stats, backup). What needs a connection: searching Open Library / TMDB, looking up a scanned ISBN (offline scans are queued and added automatically when you're back online), and loading covers you haven't seen before. Covers you have seen stay available offline (the most recent ~300, stored at their real size of ~20 KB each).
 
 The app also asks the browser to keep its data from being cleared (`navigator.storage.persist()`). The real safety net is still **Backup** above.
 
@@ -90,10 +90,11 @@ From **+ Add**, tap **Scan a book's barcode**. Point the rear camera at the ISBN
 
 All data lives in the browser on your phone, so back it up. Open **Backup** from the home screen:
 
-- **Export backup** downloads one JSON file (`shelf-backup-YYYY-MM-DD.json`) with every item, log entry, rating, note and quote. On Android it lands in Downloads; copy it somewhere safe (Drive, email to yourself...).
+- **Send backup to…** opens your phone's share sheet with one JSON file (`shelf-backup-YYYY-MM-DD.json`: every item, log entry, rating, note and quote). Pick Drive, email, or a chat with yourself, so the copy is stored **outside the phone**. That is the only kind of backup that survives the phone clearing Chrome's data. "Download a file instead" saves it to Downloads (copy it off the phone too). Cancelling the share sheet doesn't count as a backup.
 - **Choose backup file** merges a backup into the current library. Records are matched by ID and the more recently edited version wins; records that exist only on one side are kept. **Importing never deletes anything**, so something you deleted after making the backup comes back if the file still has it. A file is fully validated first, so a bad or newer-version file changes nothing. An Undo toast reverses an import.
 - To restore onto a **fresh install**, just import the file.
-- A banner on the home screen reminds you when your last export is more than 30 days old (or you have 10+ items and have never exported). Dismissing it hides it for a week.
+- A banner on the home screen reminds you to back up when **5 or more additions or edits aren't in any backup yet** (dismissing hides it for a day), when your last backup is more than 30 days old, or when you have 10+ items and have never backed up (those two hide for a week). One tap on **Back up now** opens the share sheet.
+- If the library opens **empty although it had items last time**, Shelf shows a red alert on the home screen right away, with links to the Storage check and to restore a backup. The check also keeps a short history of launches and storage errors, which is the evidence for working out what happened.
 
 ## If your data seems to be gone: Storage check
 

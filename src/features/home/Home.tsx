@@ -10,6 +10,7 @@ import { latestLog, TransitionError, type StatusAction } from '../../domain/stat
 import type { Item, LogEntry, Status } from '../../domain/types'
 import { Link } from 'react-router-dom'
 import { BackupBanner } from '../backup/BackupBanner'
+import { LossAlert } from '../health/LossAlert'
 import { NotePrompt } from './NotePrompt'
 import { ItemCard } from './ItemCard'
 
@@ -156,6 +157,7 @@ export default function Home() {
         </nav>
       </header>
 
+      <LossAlert />
       <BackupBanner />
 
       {!loading && (

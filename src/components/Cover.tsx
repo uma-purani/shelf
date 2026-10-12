@@ -16,6 +16,9 @@ export function Cover({ title, url, className = '' }: { title: string; url?: str
         src={url}
         alt=""
         loading="lazy"
+        // CORS request: the cached copy is a normal ~25 KB response. A plain cross-origin <img> would be
+        // cached as an "opaque" response, which Chrome counts at several MB each against this site's storage.
+        crossOrigin="anonymous"
         onError={() => setFailed(true)}
         className={`rounded-md object-cover ${className}`}
       />

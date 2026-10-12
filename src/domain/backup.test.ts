@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   backupFileName,
+  backupReminder,
   buildBackup,
+  countUnsavedChanges,
   daysSince,
   describeImport,
   parseBackup,
@@ -213,6 +215,50 @@ describe('shouldShowBackupReminder', () => {
   it('ignores invalid timestamps', () => {
     expect(shouldShowBackupReminder({ lastBackupAt: 'garbage', itemCount: 10, now })).toBe(true)
     expect(shouldShowBackupReminder({ lastBackupAt: 'garbage', itemCount: 3, now })).toBe(false)
+  })
+})
+
+describe('countUnsavedChanges', () => {
+  const data = {
+    items: [item('a', '2026-10-01'), item('b', '2026-10-10')],
+    logs: [log('l1', 'a', { createdAt: iso('2026-10-02') }), log('l2', 'a', { createdAt: iso('2026-09-01'), updatedAt: iso('2026-10-11') })],
+    quotes: [quote('q1', 'a', { createdAt: iso('2026-09-05') })],
+  }
+  it('counts records edited or added after the last backup, using updatedAt where there is one', () => {
+    // backup at 2026-10-05: item b (10-10), log l2 (edited 10-11) are newer; item a, l1 (10-02) and q1 are not
+    expect(countUnsavedChanges(data, iso('2026-10-05'))).toBe(2)
+    expect(countUnsavedChanges(data, iso('2026-10-20'))).toBe(0)
+  })
+  it('counts everything when there has never been a backup (or the time is garbage)', () => {
+    expect(countUnsavedChanges(data, undefined)).toBe(5)
+    expect(countUnsavedChanges(data, 'garbage')).toBe(5)
+    expect(countUnsavedChanges({ items: [], logs: [], quotes: [] }, undefined)).toBe(0)
+  })
+})
+
+describe('backupReminder reasons', () => {
+  const day = 24 * 60 * 60 * 1000
+  const ago = (days: number) => new Date(now.getTime() - days * day).toISOString()
+
+  it('nudges once 5 changes are unsaved, even right after a backup that is not old', () => {
+    expect(backupReminder({ lastBackupAt: ago(1), unsavedChanges: 4, itemCount: 3, now })).toEqual({ show: false })
+    expect(backupReminder({ lastBackupAt: ago(1), unsavedChanges: 5, itemCount: 3, now })).toEqual({ show: true, reason: 'changes' })
+  })
+  it('keeps the age and never reasons, which take priority in the message', () => {
+    expect(backupReminder({ lastBackupAt: ago(40), unsavedChanges: 9, itemCount: 3, now }).reason).toBe('age')
+    expect(backupReminder({ unsavedChanges: 9, itemCount: 12, now }).reason).toBe('never')
+    expect(backupReminder({ unsavedChanges: 9, itemCount: 4, now }).reason).toBe('changes') // new user, few items, several changes
+  })
+  it('snoozes a changes nudge for a day, but an age nudge for a week', () => {
+    const changes = { lastBackupAt: ago(2), unsavedChanges: 8, itemCount: 3, now }
+    expect(backupReminder({ ...changes, dismissedAt: ago(0.5) }).show).toBe(false)
+    expect(backupReminder({ ...changes, dismissedAt: ago(1.5) }).show).toBe(true)
+    const stale = { lastBackupAt: ago(40), unsavedChanges: 0, itemCount: 3, now }
+    expect(backupReminder({ ...stale, dismissedAt: ago(3) }).show).toBe(false)
+    expect(backupReminder({ ...stale, dismissedAt: ago(8) }).show).toBe(true)
+  })
+  it('still works as a plain yes/no', () => {
+    expect(shouldShowBackupReminder({ lastBackupAt: ago(40), itemCount: 0, now })).toBe(true)
   })
 })
 

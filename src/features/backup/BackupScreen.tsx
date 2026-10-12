@@ -7,7 +7,7 @@ import { db } from '../../data/db'
 import { SETTING_KEYS } from '../../data/settings'
 import { daysSince } from '../../domain/backup'
 import { useGoBack } from '../../hooks/useGoBack'
-import { exportNow } from './exportAction'
+import { backUpNow, canShareBackup, describeBackUp, exportNow } from './exportAction'
 
 const card = 'rounded-2xl bg-card p-4 shadow-sm ring-1 ring-line'
 const primary =
@@ -34,11 +34,24 @@ export default function BackupScreen() {
           days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`
         })`
 
+  const canShare = canShareBackup()
+
+  async function doBackUp() {
+    setBusy('export')
+    try {
+      toast.show(describeBackUp(await backUpNow()))
+    } catch (e) {
+      toast.show(`Couldn't back up: ${e instanceof Error ? e.message : 'unknown error'}`)
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function doExport() {
     setBusy('export')
     try {
       const { fileName, itemCount } = await exportNow()
-      toast.show(`Saved ${fileName} (${itemCount} ${itemCount === 1 ? 'item' : 'items'})`)
+      toast.show(`Saved ${fileName} (${itemCount} ${itemCount === 1 ? 'item' : 'items'}). Copy it off this phone too.`)
     } catch (e) {
       toast.show(`Couldn't export: ${e instanceof Error ? e.message : 'unknown error'}`)
     } finally {
@@ -92,9 +105,29 @@ export default function BackupScreen() {
           <p className="mt-1 text-xs text-muted">
             {info?.itemCount ?? 0} {info?.itemCount === 1 ? 'item' : 'items'} with all logs, ratings, notes and quotes.
           </p>
-          <button type="button" onClick={doExport} disabled={busy !== null} className={`${primary} mt-3`}>
-            {busy === 'export' ? 'Exporting…' : 'Export backup'}
-          </button>
+          {canShare ? (
+            <>
+              <button type="button" onClick={doBackUp} disabled={busy !== null} className={`${primary} mt-3`}>
+                {busy === 'export' ? 'Preparing…' : 'Send backup to…'}
+              </button>
+              <p className="mt-2 text-xs text-muted">
+                Opens your phone&rsquo;s share sheet: pick Drive, email, or a chat with yourself, so the file is
+                stored outside this phone.
+              </p>
+              <button
+                type="button"
+                onClick={doExport}
+                disabled={busy !== null}
+                className="mt-2 min-h-11 w-full rounded-xl text-sm font-medium ring-1 ring-line active:bg-chip disabled:opacity-50"
+              >
+                Download a file instead
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={doExport} disabled={busy !== null} className={`${primary} mt-3`}>
+              {busy === 'export' ? 'Exporting…' : 'Export backup'}
+            </button>
+          )}
         </section>
 
         <section className={card} aria-label="Import">

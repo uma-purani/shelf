@@ -4,6 +4,7 @@ import { downloadTextFile } from '../../data/download'
 import { requestPersistence } from '../../data/db'
 import { daysSince } from '../../domain/backup'
 import { useGoBack } from '../../hooks/useGoBack'
+import { useHealth } from '../../hooks/useHealth'
 import {
   collectDiagnostics,
   diagnose,
@@ -180,9 +181,59 @@ export default function DiagnosticsScreen() {
               />
             </dl>
           </section>
+          <HistoryCard />
         </div>
       )}
     </div>
+  )
+}
+
+/** Recent launches and storage errors recorded by the app itself: the evidence after a loss. */
+function HistoryCard() {
+  const health = useHealth()
+  const launches = [...health.launches].reverse().slice(0, 10)
+  const events = [...health.events].reverse().slice(0, 8)
+  const when = (iso: string) => new Date(iso).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+
+  return (
+    <section className="rounded-2xl bg-card p-4 shadow-sm ring-1 ring-line" aria-label="History">
+      <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Recent launches</h2>
+      {health.lastKnown && (
+        <p className="mb-2 text-xs text-muted">
+          Last seen with {health.lastKnown.items} {health.lastKnown.items === 1 ? 'item' : 'items'} ({when(health.lastKnown.at)}).
+        </p>
+      )}
+      {launches.length === 0 ? (
+        <p className="text-sm text-muted">Nothing recorded yet. Launches are recorded from now on.</p>
+      ) : (
+        <ul className="space-y-1.5 text-xs">
+          {launches.map((l) => (
+            <li key={l.at} className="flex flex-wrap gap-x-2">
+              <span className="font-medium">{when(l.at)}</span>
+              <span>
+                {l.items} items, {l.logs} logs
+              </span>
+              <span className="text-muted">
+                {l.standalone ? 'app' : 'tab'} · {l.persisted === null ? 'keep: ?' : l.persisted ? 'protected' : 'not protected'} ·{' '}
+                {formatBytes(l.indexedDBUsage)} db / {formatBytes(l.cachesUsage)} files
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {events.length > 0 && (
+        <>
+          <h3 className="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-muted">Recent problems</h3>
+          <ul className="space-y-1 text-xs">
+            {events.map((e, i) => (
+              <li key={`${e.at}-${i}`} className="break-words">
+                <span className="font-medium">{when(e.at)}</span> · {e.kind}: <span className="text-muted">{e.message}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
   )
 }
 

@@ -102,9 +102,11 @@ export default defineConfig({
             urlPattern: ({ url }) => url.origin === 'https://covers.openlibrary.org' || url.origin === 'https://image.tmdb.org',
             handler: 'CacheFirst',
             options: {
-              cacheName: 'cover-images',
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 60 },
-              cacheableResponse: { statuses: [0, 200] }, // 0 = opaque cross-origin <img> responses
+              // v2: the old 'cover-images' cache held opaque responses that Chrome counts at several MB each
+              cacheName: 'cover-images-v2',
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 90 },
+              // real (CORS) responses only: the <img> sets crossOrigin, so nothing opaque is ever cached
+              cacheableResponse: { statuses: [200] },
             },
           },
         ],
