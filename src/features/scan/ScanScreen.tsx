@@ -4,6 +4,7 @@ import { useToast } from '../../components/Toast'
 import { db } from '../../data/db'
 import { useGoBack } from '../../hooks/useGoBack'
 import { isbnFromImage, scanSupport, type ScanSupport } from '../../services/barcode'
+import { describeBatch, scanPhotos } from '../../services/batchScan'
 import { isbnService, type ScanOutcome } from '../../services/isbn'
 import { CameraScanner } from './CameraScanner'
 
@@ -56,6 +57,7 @@ export default function ScanScreen() {
   const [typed, setTyped] = useState('')
   const [rows, setRows] = useState<ResultRow[]>([])
   const [busyPhoto, setBusyPhoto] = useState(false)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const nextRow = useRef(0)
   const photoInput = useRef<HTMLInputElement>(null)
 
@@ -85,16 +87,31 @@ export default function ScanScreen() {
     }
   }
 
-  async function handlePhoto(file: File) {
+  async function handlePhotos(files: File[]) {
     setBusyPhoto(true)
     try {
-      const isbn = await isbnFromImage(file)
-      if (!isbn) toast.show("Couldn't find an ISBN barcode in that photo. Try a closer, sharper one.")
-      else await handleIsbn(isbn)
+      if (files.length === 1) {
+        const isbn = await isbnFromImage(files[0])
+        if (!isbn) toast.show("Couldn't find an ISBN barcode in that photo. Try a closer, sharper one.")
+        else await handleIsbn(isbn)
+        return
+      }
+      // several photos at once (e.g. taken at a bookstore): add them all
+      setProgress({ done: 0, total: files.length })
+      const summary = await scanPhotos(files, {
+        detect: isbnFromImage,
+        scan: (isbn) => isbnService.scan(isbn),
+        onProgress: (done, total) => setProgress({ done, total }),
+      })
+      const message = describeBatch(summary)
+      setRows((prev) => [{ id: ++nextRow.current, label: `${files.length} photos`, detail: message }, ...prev].slice(0, MAX_ROWS))
+      const created = summary.added.length + summary.drafts.length
+      toast.show(message, created > 0 ? summary.undo : undefined)
     } catch (e) {
-      toast.show(`Couldn't read that photo: ${e instanceof Error ? e.message : 'unknown error'}`)
+      toast.show(`Couldn't read those photos: ${e instanceof Error ? e.message : 'unknown error'}`)
     } finally {
       setBusyPhoto(false)
+      setProgress(null)
       if (photoInput.current) photoInput.current.value = ''
     }
   }
@@ -138,16 +155,24 @@ export default function ScanScreen() {
               ref={photoInput}
               type="file"
               accept="image/*"
-              aria-label="Photo of a barcode"
+              multiple
+              aria-label="Photos of barcodes"
               className="sr-only"
               onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) void handlePhoto(file)
+                const files = [...(e.target.files ?? [])]
+                if (files.length) void handlePhotos(files)
               }}
             />
             <button type="button" disabled={busyPhoto} onClick={() => photoInput.current?.click()} className={secondaryBtn}>
-              {busyPhoto ? 'Reading photo…' : 'Pick a photo of a barcode'}
+              {progress
+                ? `Reading photo ${Math.min(progress.done + 1, progress.total)} of ${progress.total}…`
+                : busyPhoto
+                  ? 'Reading photo…'
+                  : 'Pick photos of barcodes'}
             </button>
+            <p className="px-1 text-center text-xs text-muted">
+              Choose several at once (for example photos from a bookstore) to add them all.
+            </p>
           </section>
         )}
 
