@@ -18,7 +18,7 @@ type SearchState =
   | { status: 'done'; outcome: SearchOutcome }
 
 const TYPE_LABEL = { book: 'Book', movie: 'Movie', show: 'Show' } as const
-const STATUS_LABEL = { want: 'Want', in_progress: 'In progress', finished: 'Finished', dropped: 'Dropped' } as const
+const STATUS_LABEL = { want: 'Queue', in_progress: 'In progress', finished: 'Finished', dropped: 'Dropped' } as const
 const MIN_CHARS = 2
 
 export default function AddScreen() {
@@ -71,7 +71,7 @@ export default function AddScreen() {
     try {
       const { key: _key, ...input } = result
       const item = await repo.addItem(input)
-      toast.show(`Added “${item.title}” to Want`, async () => void (await repo.deleteItem(item.id)))
+      toast.show(`Added “${item.title}” to Queue`, async () => void (await repo.deleteItem(item.id)))
     } catch (e) {
       toast.show(`Couldn't add: ${e instanceof Error ? e.message : 'unknown error'}`)
     }
@@ -91,7 +91,7 @@ export default function AddScreen() {
   }
   const matching = draftId !== undefined
   const pick = (r: SearchResult) => (matching ? resolveDraft(r) : add(r))
-  const actionLabel = matching ? 'Use this' : '+ Want'
+  const actionLabel = matching ? 'Use this' : '+ Queue'
 
   const outcome = state.status === 'done' ? state.outcome : undefined
   const noResults = outcome && outcome.books.length === 0 && outcome.screen.length === 0

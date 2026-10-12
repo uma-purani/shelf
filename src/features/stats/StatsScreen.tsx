@@ -77,7 +77,7 @@ export default function StatsScreen() {
               <span className="text-muted">{stats.library.total === 1 ? 'item' : 'items'}</span>
             </p>
             <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-              <LibraryRow label="Want" value={stats.library.want} />
+              <LibraryRow label="Queue" value={stats.library.want} />
               <LibraryRow label="In progress" value={stats.library.in_progress} />
               <LibraryRow label="Finished" value={stats.library.finished} />
               <LibraryRow label="Dropped" value={stats.library.dropped} />

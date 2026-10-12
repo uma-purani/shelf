@@ -14,7 +14,7 @@ import { ItemQuotes } from '../quotes/ItemQuotes'
 
 const TYPE_LABEL: Record<ItemType, string> = { book: 'Book', movie: 'Movie', show: 'Show' }
 const STATUS_LABEL: Record<Status, string> = {
-  want: 'Want',
+  want: 'Queue',
   in_progress: 'In progress',
   finished: 'Finished',
   dropped: 'Dropped',

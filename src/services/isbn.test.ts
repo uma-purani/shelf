@@ -43,7 +43,7 @@ beforeEach(() => {
 })
 
 describe('scan: online', () => {
-  it('adds a found book to Want with its metadata and the ISBN-13', async () => {
+  it('adds a found book to the Queue with its metadata and the ISBN-13', async () => {
     lookup.mockResolvedValue(duneMatch)
     const r = await service.scan('978-0-441-17271-9')
     expect(r.kind).toBe('added')

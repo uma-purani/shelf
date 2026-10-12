@@ -33,7 +33,7 @@ Vercel deployment and "install to home screen" steps are added in later incremen
 
 From **+ Add**, tap **Scan a book's barcode**. Point the rear camera at the ISBN barcode on the back of a book, or pick a photo of one from your gallery. It uses the browser's built-in `BarcodeDetector`, so there is no library or API key.
 
-- Found in Open Library: added to **Want** with an Undo toast, no confirmation step. Scanning keeps going, so you can do several books in a row.
+- Found in Open Library: added to your **Queue** with an Undo toast, no confirmation step. Scanning keeps going, so you can do several books in a row.
 - Not found: saved as a **draft** carrying the ISBN, so you can match it later from "Needs details".
 - Offline: the ISBN is queued and looked up automatically when you're back online.
 - Already on your shelf: nothing is added.

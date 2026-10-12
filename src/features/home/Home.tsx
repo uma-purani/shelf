@@ -14,7 +14,7 @@ import { ItemCard } from './ItemCard'
 
 type Tab = Extract<Status, 'want' | 'finished' | 'dropped'>
 const TABS: Array<{ value: Tab; label: string }> = [
-  { value: 'want', label: 'Want' },
+  { value: 'want', label: 'Queue' },
   { value: 'finished', label: 'Finished' },
   { value: 'dropped', label: 'Dropped' },
 ]
@@ -165,7 +165,7 @@ export default function Home() {
             <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-muted">
               {caughtUp.length > 0
                 ? 'Nothing to watch right now. You are caught up on everything below.'
-                : 'Nothing in progress. Start something from your Want list.'}
+                : 'Nothing in progress. Start something from your Queue.'}
             </p>
           ) : (
             <ul className="space-y-3">

@@ -21,7 +21,7 @@ export type ScanOutcome =
   | { kind: 'invalid' }
   /** Already on the shelf; nothing was added. */
   | { kind: 'exists'; item: Item }
-  /** Found and added to Want. */
+  /** Found and added to the Queue. */
   | { kind: 'added'; item: Item; undo: () => Promise<void> }
   /** Open Library didn't know it: saved as a draft carrying the ISBN. */
   | { kind: 'draft'; item: Item; undo: () => Promise<void> }

@@ -22,8 +22,8 @@ function describeOutcome(outcome: ScanOutcome, isbn: string): { message: string;
   switch (outcome.kind) {
     case 'added':
       return {
-        message: `Added “${outcome.item.title}” to Want`,
-        row: { label: outcome.item.title, detail: 'Added to Want' },
+        message: `Added “${outcome.item.title}” to Queue`,
+        row: { label: outcome.item.title, detail: 'Added to Queue' },
       }
     case 'draft':
       return {

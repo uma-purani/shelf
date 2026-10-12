@@ -22,7 +22,7 @@ function loadLastType(): ItemType {
 }
 
 /**
- * Quick capture: a title and a type chip, saved as a draft in the Want list.
+ * Quick capture: a title and a type chip, saved as a draft in the Queue.
  * No network needed. Stays open after saving so several can be captured in a row.
  */
 export default function CaptureScreen() {
@@ -48,7 +48,7 @@ export default function CaptureScreen() {
       const item = await repo.addItem({ type, title, isDraft: true })
       setTitle('')
       inputRef.current?.focus()
-      toast.show(`Saved “${item.title}” to Want`, async () => void (await repo.deleteItem(item.id)))
+      toast.show(`Saved “${item.title}” to Queue`, async () => void (await repo.deleteItem(item.id)))
     } catch (e) {
       toast.show(`Couldn't save: ${e instanceof Error ? e.message : 'unknown error'}`)
     }
@@ -116,7 +116,7 @@ export default function CaptureScreen() {
       </form>
 
       <p className="mt-4 text-center text-xs text-muted">
-        Saved as a draft in your Want list. Add details later from “Needs details”.
+        Saved as a draft in your Queue. Add details later from “Needs details”.
       </p>
     </div>
   )
