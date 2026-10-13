@@ -124,9 +124,16 @@ export default function BackupScreen() {
               </button>
             </>
           ) : (
-            <button type="button" onClick={doExport} disabled={busy !== null} className={`${primary} mt-3`}>
-              {busy === 'export' ? 'Exporting…' : 'Export backup'}
-            </button>
+            <>
+              <button type="button" onClick={doExport} disabled={busy !== null} className={`${primary} mt-3`}>
+                {busy === 'export' ? 'Exporting…' : 'Export backup'}
+              </button>
+              <p className="mt-2 text-xs text-muted">
+                This browser won&rsquo;t open the share sheet for files, so the backup downloads to this phone. Afterwards,
+                open your Files app and send or upload that file somewhere outside the phone (Drive, email). A copy
+                that stays on the phone is lost if the phone clears Chrome&rsquo;s data.
+              </p>
+            </>
           )}
         </section>
 
@@ -139,7 +146,7 @@ export default function BackupScreen() {
           <input
             ref={fileInput}
             type="file"
-            accept="application/json,.json"
+            accept="application/json,.json,text/plain,.txt"
             aria-label="Backup file"
             className="sr-only"
             onChange={(e) => {

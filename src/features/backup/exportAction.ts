@@ -9,14 +9,44 @@ export async function exportNow(): Promise<{ fileName: string; itemCount: number
   return { fileName, itemCount }
 }
 
-/** Can this browser hand a file to the phone's share sheet (Drive, email, Messages...)? */
-export function canShareBackup(): boolean {
+/**
+ * The ways a backup can be handed to the share sheet, best first. Some browsers (Chrome on
+ * Android among them) only let a short list of file types through the share sheet and leave
+ * out JSON, so the same content is also offered as a plain-text file. Restoring accepts both.
+ */
+export function shareCandidates(text: string, fileName: string): File[] {
+  return [
+    new File([text], fileName, { type: 'application/json' }),
+    new File([text], `${fileName}.txt`, { type: 'text/plain' }),
+  ]
+}
+
+/** The first candidate file this browser's share sheet accepts, if any. */
+function shareableFile(text: string, fileName: string): File | undefined {
   try {
-    const probe = new File(['{}'], 'shelf-backup.json', { type: 'application/json' })
-    return typeof navigator.share === 'function' && !!navigator.canShare?.({ files: [probe] })
+    if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return undefined
+    return shareCandidates(text, fileName).find((f) => navigator.canShare({ files: [f] }))
   } catch {
-    return false
+    return undefined
   }
+}
+
+/** Can this browser hand a backup file to the phone's share sheet (Drive, email, Messages...)? */
+export function canShareBackup(): boolean {
+  return shareableFile('{}', 'shelf-backup.json') !== undefined
+}
+
+/** For the Storage check: what the share sheet will take on this browser. */
+export function shareSupportReport(): { api: boolean; json: boolean; text: boolean } {
+  const can = (f: File) => {
+    try {
+      return typeof navigator.canShare === 'function' && !!navigator.canShare({ files: [f] })
+    } catch {
+      return false
+    }
+  }
+  const [json, txt] = shareCandidates('{}', 'shelf-backup.json')
+  return { api: typeof navigator.share === 'function', json: can(json), text: can(txt) }
 }
 
 export type BackUpResult =
@@ -31,9 +61,9 @@ export type BackUpResult =
 export async function backUpNow(): Promise<BackUpResult> {
   const { text, fileName, itemCount } = await exportBackup()
 
-  if (canShareBackup()) {
+  const file = shareableFile(text, fileName)
+  if (file) {
     try {
-      const file = new File([text], fileName, { type: 'application/json' })
       await navigator.share({ files: [file], title: 'Shelf backup', text: `Shelf backup (${itemCount} items)` })
       await markBackedUp()
       return { method: 'shared', fileName, itemCount }

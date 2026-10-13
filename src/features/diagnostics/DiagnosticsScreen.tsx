@@ -5,6 +5,7 @@ import { requestPersistence } from '../../data/db'
 import { daysSince } from '../../domain/backup'
 import { useGoBack } from '../../hooks/useGoBack'
 import { useHealth } from '../../hooks/useHealth'
+import { shareSupportReport } from '../backup/exportAction'
 import {
   collectDiagnostics,
   diagnose,
@@ -159,6 +160,7 @@ export default function DiagnosticsScreen() {
                 }
               />
               <Row label="Shelf database" value={describeShelf(report)} />
+              <Row label="File sharing" value={describeSharing()} />
               <Row
                 label="App can open it"
                 value={report.app.ok ? `Yes: ${report.app.items} items, ${report.app.logs} logs, ${report.app.quotes} quotes` : `No: ${report.app.error}`}
@@ -235,6 +237,13 @@ function HistoryCard() {
       )}
     </section>
   )
+}
+
+/** What the share sheet will take, so "Send backup to…" being missing can be explained. */
+function describeSharing(): string {
+  const s = shareSupportReport()
+  const yn = (b: boolean) => (b ? 'yes' : 'no')
+  return `share sheet ${yn(s.api)}, JSON file ${yn(s.json)}, text file ${yn(s.text)}`
 }
 
 function describeShelf(r: DiagnosticsReport): string {
